@@ -59,6 +59,7 @@ a test. (This is the same checklist the conformance vectors enforce.)
 - [ ] **Resolver authz is fail-closed** (`allowed_resolvers` defaults closed).
 - [ ] **Callbacks** target an **agent-owned, verified** host (push or pull) with **SSRF controls**: host-ownership verification, private-range refusal at delivery time, no redirects, credential-host binding. The Hub **MUST NOT** server-side-fetch `context.file.uri` unless that URI passes the **same host controls used for callbacks**.
 - [ ] **Lifecycle** is atomic, single-writer, **first-terminal-wins**. Resolutions: `ask` → `answered|declined|cancelled|expired`; `task` → `completed|dismissed|expired`. Statuses: `delivered` is terminal-on-acceptance for **`notify` only** (`open` → `delivered`); `ask`/`task` transition **`open` → terminal** directly (no `delivered` state).
+- [ ] **Durable persistence** (§3.1): a Hub process restart **MUST NOT** lose open asks/tasks, delivered notifies, committed resolutions, or pending push-delivery obligations. **In-memory-only storage is non-conformant** — back the lifecycle with a real store and add a restart test.
 - [ ] **`body` is untrusted Markdown** — sanitize to a **no-raw-HTML** profile before any rendering.
 - [ ] **Telemetry/logs exclude** `state`, `body`, `context`, `response.value`, `response.comment` — `state` is a hard **MUST NOT log** (the agent's opaque resume context).
 - [ ] **Capability discovery** advertises `max_body_bytes` / `max_part_bytes` / `max_context_parts` / auth schemes, and the Hub **enforces** those limits at ingest.
@@ -74,8 +75,11 @@ algorithms byte-for-byte — then prove it with the `dp-001` signature vector. N
 ## 5. Implement
 
 Validate inbound envelopes against the JSON Schemas at the boundary. Build the surface (§2), satisfy each
-MUST (§3), wire a small **callback outbox + delivery worker** for push (with the SSRF controls) and the
-pull endpoint. Keep the human-facing rendering separate from the API.
+MUST (§3), and wire a small **callback outbox + delivery worker** for push. Delivery is **at-least-once**
+(§8.3): retry on `5xx`/network errors with exponential backoff (**≥ 5 attempts**), **never** retry on `4xx`,
+cap total attempts + duration (and advertise it), apply the SSRF controls on every attempt, and after
+retry exhaustion keep the resolution **pull-available** — it is never lost. Keep the human-facing rendering
+separate from the API.
 
 ## 6. Prove conformance — then you're done
 

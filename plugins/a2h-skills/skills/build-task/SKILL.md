@@ -72,9 +72,10 @@ description: Ask a human to perform a manual, out-of-band action via <APP>'s A2H
   - `instructions`: what the human must do (Markdown)
   - `checklist` *(optional)*: `[{ "text": "…", "done": false }, …]`
   - `verification` *(optional)*: how completion is confirmed
-  - **`allowed_resolvers` (REQUIRED for a human task)**: set `["human:*"]` (or a specific `human:<id>`). If
-    omitted it **fails closed to the submitting `agent.id` only** — so no human can resolve the task and it
-    will sit unresolvable until it expires.
+  - **`allowed_resolvers` (REQUIRED for a human task)**: list the **concrete human actor id(s)** allowed to
+    complete it — e.g. `["human:alice"]` (format `<type>:<id>`; the Hub matches the resolver **exactly —
+    there is no wildcard**). If omitted it **fails closed to the submitting `agent.id` only** — so no human
+    can resolve the task and it sits unresolvable until it expires.
   - `callback`: `{ "mode": "push", "url": "<CALLBACK_URL>", "auth": { "scheme": "<hmac|bearer|apikey>", "<secret_ref|token_ref>": "…" } }` — or `{ "mode": "pull" }`.
 - `state` *(optional)*: an **agent-sealed** (AEAD) resume blob; the Hub stores it opaquely.
 
@@ -84,8 +85,9 @@ Expect `202 { id, status: "open" }`. Retries reuse the **same `idempotency_key`*
 The run may end here. When the human resolves it, the agent gets the terminal Response one of two ways:
 
 - **push:** the Hub `POST`s a **signed Response** to `<CALLBACK_URL>` → your handler re-invokes this agent.
-- **pull:** poll `GET <HUB_URL>/v1/messages/{id}` (Bearer) until the message reaches a terminal state; the
-  terminal `response` is **embedded in the message body**. A pull response is **not** signed — it's trusted
+- **pull:** poll the **`poll_url` returned in the `202` ack** (Bearer) until the message reaches a terminal
+  state; the terminal `response` is **embedded in the message body** (use the ack's `poll_url` verbatim —
+  the Hub may sit behind a path prefix). A pull response is **not** signed — it's trusted
   via the authenticated GET transport + the immutable terminal record (no `jti` / detached signature).
 
 Then **MUST**:

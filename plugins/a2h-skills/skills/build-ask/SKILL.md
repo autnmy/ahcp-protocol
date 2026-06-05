@@ -15,8 +15,8 @@ leg**, which makes it the most involved verb. Get these right in the generated s
 - **`idempotency_key` is REQUIRED** — stable per logical request, scope `(agent.id, idempotency_key)`, so a
   lost `202` retried doesn't create a second human decision.
 - **`callback`** — where the answer goes: `push` (the Hub `POST`s the signed Response to your URL) or
-  `pull` (your agent polls `GET {HUB}/v1/messages/{id}` and reads the terminal `response` embedded in the
-  message body).
+  `pull` (your agent polls the `poll_url` from the `202` ack and reads the terminal `response` embedded in
+  the message body).
 - **Resume + verify** — the run may end; on the callback it is re-invoked. **Only pushed Responses are
   signed** (`A2H-Signature: t=<unix>,jti=<nonce>,v1=<base64url(sig)>` — RFC 8785 JCS + detached
   HMAC-SHA256, ±120s window, bound to `id` + `resolution_id` + `callback_url`); a **pull** response is
@@ -83,9 +83,10 @@ description: Ask a human a decision via <APP>'s A2H Hub and route the signed ans
   - `{ "mode": "confirm", "options": [{"value":"yes","label":"…"},{"value":"no","label":"…"}] }`
   - `{ "mode": "select", "options": [{"value":"a","label":"…"}, …] }`  (≥1 option)
   - `{ "mode": "input", "schema": { …flat JSON Schema: string/number/boolean/enum… } }`
-- **`request.allowed_resolvers` (REQUIRED for a human decision)**: set `["human:*"]` (or a specific
-  `human:<id>`). If omitted it **fails closed to the submitting `agent.id` only** — so no human can resolve
-  the ask and it will sit unresolvable until it expires.
+- **`request.allowed_resolvers` (REQUIRED for a human decision)**: list the **concrete human actor id(s)**
+  allowed to answer — e.g. `["human:alice"]` (format `<type>:<id>`, `type ∈ {human,agent,system}`; the Hub
+  matches the authenticated resolver **exactly — there is no wildcard**). If omitted it **fails closed to
+  the submitting `agent.id` only** — so no human can resolve the ask and it sits unresolvable until it expires.
 - `request.callback`: `{ "mode": "push", "url": "<CALLBACK_URL>", "auth": { "scheme": "<hmac|bearer|apikey>", "<secret_ref|token_ref>": "…" } }` — or `{ "mode": "pull" }`.
 - `state` *(optional)*: an **agent-sealed** (AEAD) resume blob. Seal it yourself; the Hub stores it opaquely.
 
@@ -96,9 +97,10 @@ same `id` back, never a duplicate decision.
 The run may end here. When the human resolves it, the agent gets the terminal Response one of two ways:
 
 - **push:** the Hub `POST`s a **signed Response** to `<CALLBACK_URL>` — your handler re-invokes this agent.
-- **pull:** poll `GET <HUB_URL>/v1/messages/{id}` (Bearer) until the message reaches a terminal state; the
-  terminal `response` is **embedded in the message body**. A pull response is **not** signed — it's trusted
-  via the authenticated GET transport + the immutable terminal record (no `jti` / detached signature).
+- **pull:** poll the **`poll_url` returned in the `202` ack** (Bearer) until the message reaches a terminal
+  state; the terminal `response` is **embedded in the message body**. Use the ack's `poll_url` verbatim —
+  the Hub may sit behind a path prefix, so don't reconstruct the URL. A pull response is **not** signed —
+  it's trusted via the authenticated GET transport + the immutable terminal record (no `jti` / detached signature).
 
 Then **MUST**:
 1. **(push only) Verify** the signature: recompute RFC 8785 JCS over the `signed_context`, check the
