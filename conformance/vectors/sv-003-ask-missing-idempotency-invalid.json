@@ -1,0 +1,19 @@
+{
+  "id": "sv-003-ask-missing-idempotency-invalid",
+  "class": "schema-validation",
+  "description": "An ask without idempotency_key is rejected (REQUIRED for ask/task per KTD1b).",
+  "ref": "spec §4, §8.1",
+  "target": "message.schema.json",
+  "expect": "invalid",
+  "input": {
+    "a2h_version": "0.2",
+    "type": "ask",
+    "created_at": "2026-06-04T15:00:00Z",
+    "agent": { "id": "deploybot/dev-team", "run_id": "r1", "runtime": "github-actions" },
+    "title": "Ship or hold?",
+    "request": {
+      "mode": "select",
+      "options": [ { "value": "ship", "label": "Ship" }, { "value": "hold", "label": "Hold" } ]
+    }
+  }
+}

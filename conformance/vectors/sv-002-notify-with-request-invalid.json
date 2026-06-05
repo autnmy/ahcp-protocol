@@ -1,0 +1,16 @@
+{
+  "id": "sv-002-notify-with-request-invalid",
+  "class": "schema-validation",
+  "description": "A notify carrying a request block is rejected (cross-type leakage forbidden by the oneOf).",
+  "ref": "spec §4, §5.1",
+  "target": "message.schema.json",
+  "expect": "invalid",
+  "input": {
+    "a2h_version": "0.2",
+    "type": "notify",
+    "created_at": "2026-06-04T13:00:00Z",
+    "agent": { "id": "deploybot/dev-team", "run_id": "r1", "runtime": "cloud" },
+    "title": "Sneaky notify",
+    "request": { "mode": "confirm" }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "a2h_version": "0.2",
+  "in_reply_to": "msg_01HZXASK0001",
+  "resolution_id": "res_01HZXCANCEL",
+  "agent": { "id": "deploybot/dev-team", "run_id": "run_01HZXABCDEF" },
+  "resolution": "cancelled",
+  "defaulted": false,
+  "response": {
+    "actor": "agent:deploybot/dev-team",
+    "resolved_at": "2026-06-04T15:30:00Z",
+    "comment": "Superseded — the agent withdrew this ask before the human acted."
+  }
+}

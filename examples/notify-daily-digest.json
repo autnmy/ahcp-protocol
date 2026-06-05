@@ -1,0 +1,26 @@
+{
+  "a2h_version": "0.2",
+  "type": "notify",
+  "created_at": "2026-06-04T13:00:00Z",
+  "agent": {
+    "id": "deploybot/dev-team",
+    "run_id": "digest_2026-06-04",
+    "runtime": "cloud",
+    "project": "web-app"
+  },
+  "title": "Daily deploy digest — web-app (last 24h)",
+  "priority": "normal",
+  "tags": ["digest", "web-app", "release"],
+  "idempotency_key": "digest-web-app-2026-06-04",
+  "body": "## Shipped\n- **#142** Extracted a shared cache helper — one source of truth for the lookup path.\n- **#138** Modeled the checkout result as a discriminated union — the error paths are now exhaustive and type-checked.\n- **#131** Added a smoke test for the password-reset flow.\n\n## Summary\nMaintenance-focused 24h: dedupe + type-safety, no user-facing changes. No regressions in the nightly run.\n\n## Numbers\n- 6 PRs merged · 0 reverts",
+  "context": [
+    {
+      "kind": "data",
+      "data": {
+        "prs_merged": 6,
+        "reverts": 0,
+        "merged": ["#142", "#138", "#131", "#129", "#127", "#124"]
+      }
+    }
+  ]
+}

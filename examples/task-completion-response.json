@@ -1,0 +1,13 @@
+{
+  "a2h_version": "0.2",
+  "in_reply_to": "msg_01HZXTASK0001",
+  "resolution_id": "res_01HZXTASKDONE",
+  "agent": { "id": "deploybot/dev-team", "run_id": "run_01HZXGHIJK" },
+  "resolution": "completed",
+  "defaulted": false,
+  "response": {
+    "actor": "human:alice",
+    "resolved_at": "2026-06-04T16:40:00Z",
+    "comment": "Key rotated in prod and rolled out to all API pods; a signed test request passes. Go."
+  }
+}

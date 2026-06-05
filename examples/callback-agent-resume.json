@@ -1,0 +1,30 @@
+{
+  "a2h_version": "0.2",
+  "type": "ask",
+  "created_at": "2026-06-04T19:00:00Z",
+  "agent": {
+    "id": "deploybot/dev-team",
+    "run_id": "run_01HZXRESUME",
+    "runtime": "github-actions",
+    "project": "web-app"
+  },
+  "title": "Safe ephemeral-resume callback (canonical pattern)",
+  "priority": "normal",
+  "tags": ["example", "resume"],
+  "idempotency_key": "resume-pattern-demo",
+  "body": "Demonstrates the §2.1 resume pattern: `callback.url` is an AGENT-OWNED re-invoke endpoint (not a third-party API), the credential is bound to that registered host (§9.4), and `state` is AEAD-sealed by the agent with a key the Hub never sees (§9.3). Compare with examples/callback-anti-pattern.md.",
+  "state": {
+    "sealed": "v1.aead.3a91...redacted...",
+    "resume_token_hint": "node:promote-build (encrypted inside `sealed`, shown here only as a label)"
+  },
+  "request": {
+    "mode": "confirm",
+    "permissions": { "allow_accept": true, "allow_edit": false, "allow_respond": true, "allow_ignore": true },
+    "allowed_resolvers": ["human:alice", "agent:deploybot/release-bot"],
+    "callback": {
+      "mode": "push",
+      "url": "https://deploybot.example/a2h/resume",
+      "auth": { "scheme": "hmac", "secret_ref": "env:A2H_CALLBACK_SECRET" }
+    }
+  }
+}

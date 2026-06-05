@@ -1,0 +1,13 @@
+{
+  "a2h_version": "0.2",
+  "in_reply_to": "msg_01HZXCONF1MSG",
+  "resolution_id": "res_01HZXDECLINE",
+  "agent": { "id": "deploybot/dev-team", "run_id": "run_01HZXCONF1" },
+  "resolution": "declined",
+  "defaulted": false,
+  "response": {
+    "actor": "human:alice",
+    "resolved_at": "2026-06-04T17:40:00Z",
+    "comment": "Not now — let's wait for the staging soak."
+  }
+}

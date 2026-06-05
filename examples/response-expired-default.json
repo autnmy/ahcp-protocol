@@ -1,0 +1,17 @@
+{
+  "a2h_version": "0.2",
+  "in_reply_to": "msg_01HZXASK0001",
+  "resolution_id": "res_01HZXEXPIRE",
+  "agent": { "id": "deploybot/dev-team", "run_id": "run_01HZXABCDEF" },
+  "resolution": "expired",
+  "defaulted": true,
+  "response": {
+    "value": "hold",
+    "edited": false,
+    "actor": "system:default_on_expire",
+    "resolved_at": "2026-06-05T15:22:08Z"
+  },
+  "state": {
+    "sealed": "v1.aead.8f2c...redacted..."
+  }
+}

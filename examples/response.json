@@ -1,0 +1,18 @@
+{
+  "a2h_version": "0.2",
+  "in_reply_to": "msg_01HZXASK0001",
+  "resolution_id": "res_01HZXR3SOLVE",
+  "agent": { "id": "deploybot/dev-team", "run_id": "run_01HZXABCDEF" },
+  "resolution": "answered",
+  "defaulted": false,
+  "response": {
+    "value": "hold",
+    "edited": false,
+    "actor": "human:alice",
+    "resolved_at": "2026-06-04T15:48:30Z",
+    "comment": "Hold for review — let's get a human eye on this before it ships."
+  },
+  "state": {
+    "sealed": "v1.aead.8f2c...redacted..."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "a2h_version": "0.2",
+  "type": "ask",
+  "created_at": "2026-06-04T17:30:00Z",
+  "agent": {
+    "id": "deploybot/dev-team",
+    "run_id": "run_01HZXCONF1",
+    "runtime": "github-actions",
+    "project": "web-app"
+  },
+  "title": "Merge PR #142 now that CI is green?",
+  "priority": "normal",
+  "tags": ["confirm", "merge"],
+  "idempotency_key": "confirm-merge-142",
+  "body": "All checks pass and the code review is resolved. Approve to merge, deny to hold. (mode=confirm: the Hub synthesizes approve/deny — no `options` supplied.)",
+  "request": {
+    "mode": "confirm",
+    "permissions": { "allow_accept": true, "allow_edit": false, "allow_respond": true, "allow_ignore": true },
+    "allowed_resolvers": ["human:alice"],
+    "callback": {
+      "mode": "push",
+      "url": "https://deploybot.example/a2h/resume",
+      "auth": { "scheme": "bearer", "token_ref": "env:A2H_RESUME_TOKEN" }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "a2h_version": "0.2",
+  "type": "task",
+  "created_at": "2026-06-04T16:05:00Z",
+  "agent": {
+    "id": "deploybot/dev-team",
+    "run_id": "run_01HZXGHIJK",
+    "runtime": "github-actions",
+    "project": "web-app"
+  },
+  "title": "Rotate API_SIGNING_KEY in prod before the #150 rollout",
+  "priority": "high",
+  "tags": ["action-required", "secrets"],
+  "idempotency_key": "rotate-api-signing-key",
+  "body": "The #150 rollout needs a fresh `API_SIGNING_KEY` (≥32 chars) in the prod secret manager. I can't set secrets — rotate it and reply done, and I'll continue the rollout.",
+  "action": {
+    "instructions": "Generate a ≥32-char random key, store it as API_SIGNING_KEY in the prod secret manager, and roll it out to the API tier.",
+    "checklist": [
+      { "text": "Generate ≥32-char key", "done": false },
+      { "text": "Store as API_SIGNING_KEY in prod secrets", "done": false },
+      { "text": "Confirm rollout to all API pods", "done": false }
+    ],
+    "verification": "A signed test request returns 200 with a valid signature.",
+    "allowed_resolvers": ["human:alice"],
+    "callback": { "mode": "pull" }
+  }
+}

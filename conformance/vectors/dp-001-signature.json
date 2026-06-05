@@ -1,0 +1,23 @@
+{
+  "id": "dp-001-signature",
+  "class": "downstream-proof",
+  "description": "Deterministic signature fixture. The Hub MUST reproduce `v1` from JCS(signed_context) + HMAC-SHA256(test_key). Canonicalization for this all-ASCII-string input is sorted-key compact JSON (== RFC 8785 JCS here).",
+  "ref": "spec §9.2",
+  "obligation": "Reproduce header `v1`; reject a tampered signed_context; reject a replayed jti within ±120s.",
+  "test_key": "a2h-test-secret-key-0123456789ab",
+  "signature_alg": "hmac-sha256",
+  "signed_context": {
+    "a2h_version": "0.2",
+    "callback_url": "https://deploybot.example/a2h/resume",
+    "id": "msg_01HZXASK0001",
+    "in_reply_to": "msg_01HZXASK0001",
+    "jti": "jti_01HZX7Q9Z3DEMOFIX",
+    "resolution": "answered",
+    "resolution_id": "res_01HZXR3SOLVE",
+    "resolved_at": "2026-06-04T15:48:30Z",
+    "t": "1749050910"
+  },
+  "canonical_jcs": "{\"a2h_version\":\"0.2\",\"callback_url\":\"https://deploybot.example/a2h/resume\",\"id\":\"msg_01HZXASK0001\",\"in_reply_to\":\"msg_01HZXASK0001\",\"jti\":\"jti_01HZX7Q9Z3DEMOFIX\",\"resolution\":\"answered\",\"resolution_id\":\"res_01HZXR3SOLVE\",\"resolved_at\":\"2026-06-04T15:48:30Z\",\"t\":\"1749050910\"}",
+  "header": "A2H-Signature: t=1749050910,jti=jti_01HZX7Q9Z3DEMOFIX,v1=IbLbIhbpTXUH9_MQvsvsBilbYcAw7Q2YVe3x6QXTcUY",
+  "v1": "IbLbIhbpTXUH9_MQvsvsBilbYcAw7Q2YVe3x6QXTcUY"
+}
