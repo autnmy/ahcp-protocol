@@ -4,13 +4,85 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>A2H — Agent-to-Human Protocol</title>
-<meta name="description" content="A vendor-neutral protocol for an agent to reach a human and get a decision back. notify · ask · task. The agent-to-human complement to A2A and MCP." />
-<meta property="og:title" content="A2H — Agent-to-Human Protocol" />
-<meta property="og:description" content="The agent-to-human complement to A2A and MCP. notify · ask · task." />
+<meta name="description" content="A vendor-neutral protocol for an AI agent to reach a human and get a decision back — notify, ask, task. The agent-to-human complement to MCP and A2A." />
+<link rel="canonical" href="https://a2hprotocol.org/" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
 <meta name="theme-color" content="#0d0f13" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="A2H Protocol" />
+<meta property="og:url" content="https://a2hprotocol.org/" />
+<meta property="og:title" content="A2H — Agent-to-Human Protocol" />
+<meta property="og:description" content="A vendor-neutral protocol for an agent to reach a human and get a decision back. notify · ask · task. The agent-to-human complement to MCP and A2A." />
+<meta property="og:image" content="https://a2hprotocol.org/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="A2H — Agent-to-Human Protocol. MCP→tools, A2A→agent, A2H→human." />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="A2H — Agent-to-Human Protocol" />
+<meta name="twitter:description" content="A vendor-neutral protocol for an agent to reach a human and get a decision back. notify · ask · task." />
+<meta name="twitter:image" content="https://a2hprotocol.org/og.png" />
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://a2hprotocol.org/#website",
+      "url": "https://a2hprotocol.org/",
+      "name": "A2H — Agent-to-Human Protocol",
+      "description": "A vendor-neutral protocol for an AI agent to reach a human and get a decision back. notify, ask, task. The agent-to-human complement to MCP and A2A.",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://a2hprotocol.org/#org" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://a2hprotocol.org/#org",
+      "name": "Autonomy",
+      "url": "https://a2hprotocol.org/",
+      "sameAs": ["https://github.com/autnmy"]
+    },
+    {
+      "@type": "TechArticle",
+      "headline": "A2H — the Agent-to-Human Protocol",
+      "description": "A2H is a vendor-neutral protocol for an agent to reach a human and get a decision back. Three verbs — notify, ask, task — the agent-to-human complement to MCP (agent↔tools) and A2A (agent↔agent).",
+      "about": ["agent-to-human protocol", "human-in-the-loop", "AI agents", "MCP", "A2A", "agent inbox"],
+      "isPartOf": { "@id": "https://a2hprotocol.org/#website" },
+      "author": { "@id": "https://a2hprotocol.org/#org" },
+      "license": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "name": "A2H Protocol",
+      "description": "Open specification, JSON Schema, conformance vectors, and TypeScript reference implementation for the Agent-to-Human Protocol.",
+      "codeRepository": "https://github.com/autnmy/a2h-protocol",
+      "programmingLanguage": ["JSON Schema", "TypeScript"],
+      "license": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ]
+}
+</script>
+
+<script>
+  /* Pre-hide the reveal blocks before first paint to avoid a flash, but only when motion is
+     allowed — and remove it automatically if the main script never runs (JS error safety net). */
+  try {
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('pre-reveal');
+      setTimeout(function () { document.documentElement.classList.remove('pre-reveal'); }, 4000);
+    }
+  } catch (e) {}
+</script>
+
 <style>
   :root{
     --bg:#070809; --term:#0d0f13; --bar:#14171d; --edge:#20242c;
@@ -29,7 +101,10 @@
   ::selection{ background:rgba(102,178,255,.22) }
   a{ color:var(--cyan); text-decoration:none } a:hover{ text-decoration:underline; text-underline-offset:3px }
 
-  /* ---- window (default: static, normal flow) ---- */
+  /* visually-hidden: present for crawlers + screen readers, invisible on screen */
+  .vh{ position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+
+  /* ---- window (default: static, normal flow — the no-JS / reduced-motion view) ---- */
   .win{
     position:relative; width:min(900px, calc(100vw - 36px)); margin:40px auto;
     display:flex; flex-direction:column; background:var(--term);
@@ -67,17 +142,26 @@
     width:min(900px, calc(100vw - 36px)); margin:0; z-index:5;
   }
 
-  /* ---- terminal content ---- */
+  /* ---- content blocks (static HTML; JS enhances them into the reveal) ---- */
+  .step{ margin-top:54px } .step:first-child{ margin-top:0 }
+  .cmdline{ white-space:pre-wrap; word-break:break-word }
+  .out{ margin-top:2px }
   .row{ white-space:pre-wrap; word-break:break-word }
   .p{ color:var(--green); font-weight:500 } .car{ color:var(--faint) } .cmd{ color:var(--fg) }
   .cmt{ color:var(--dim) }
   .dim{ color:var(--dim) } .faint{ color:var(--faint) }
   .cy,.gr{ color:var(--cyan) } .am{ color:var(--amber) } .vi{ color:var(--violet) }
-  .ln{ }
   .tl{ white-space:pre-wrap; word-break:break-word }
 
-  .lead{ margin:20px 0 10px }
-  .mark{ font-size:46px; font-weight:700; letter-spacing:1px; line-height:1; margin:0 0 4px } .mark .s{ color:var(--green) }
+  /* reveal mode: hide blocks until JS shows them (content still in the DOM + raw HTML) */
+  .pre-reveal .step{ display:none }
+  body.reveal .step{ display:none } body.reveal .step.shown{ display:block }
+  body.reveal .step .out{ display:none } body.reveal .step .out.shown{ display:block }
+  body.reveal .step[data-stream] .out.shown .tl{ display:none }
+  body.reveal .step[data-stream] .out.shown .tl.shown{ display:block }
+
+  .lead{ margin:18px 0 10px }
+  .mark{ font-size:46px; font-weight:700; letter-spacing:1px; line-height:1; margin:0 0 6px } .mark .s{ color:var(--green) }
   .tag{ color:var(--dim); margin:0 0 18px; max-width:64ch } .tag b{ color:var(--fg); font-weight:500 }
   .map{ margin:0; color:var(--dim); white-space:pre } .map b{ color:var(--fg) }
 
@@ -121,9 +205,79 @@
 </style>
 </head>
 <body>
-<main class="win" id="win" aria-label="A2H terminal">
+<main class="win" id="win" aria-label="A2H — Agent-to-Human Protocol">
   <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="name">a2h — agent-to-human protocol</span><span></span></div>
-  <div class="screen" id="screen"></div>
+  <div class="screen" id="screen">
+
+    <section class="step" data-cmd="a2h about">
+      <div class="cmdline"><span class="p">~/a2h</span> <span class="car">❯</span> <span class="cmd">a2h about</span></div>
+      <div class="out lead">
+        <h1 class="mark">A<span class="s">2</span>H<span class="vh"> — Agent-to-Human Protocol</span></h1>
+        <p class="tag">A vendor-neutral protocol for an agent to <b>reach a human and get a decision back</b>. The agent-to-human complement to A2A and MCP.</p>
+        <pre class="map"><b>MCP</b>  →  agent ↔ tools
+<b>A2A</b>  →  agent ↔ agent
+<b>A2H</b>  →  agent ↔ human     <span class="gr">← this standard</span></pre>
+      </div>
+    </section>
+
+    <section class="step" data-cmd="a2h verbs">
+      <div class="cmdline"><span class="p">~/a2h</span> <span class="car">❯</span> <span class="cmd">a2h verbs</span></div>
+      <div class="out">
+        <h2 class="vh">The three verbs</h2>
+        <dl class="verb">
+          <dt>notify</dt><dd>FYI / summary / status. <b>No response.</b> <span class="faint">— a daily digest</span></dd>
+          <dt>ask</dt><dd>A decision the human makes; the answer <b>routes back</b> to the (often exited) agent. <span class="faint">— ship / hold</span></dd>
+          <dt>task</dt><dd>A manual action a human performs <b>out-of-band</b>, then marks done. <span class="faint">— rotate a key</span></dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="step" data-cmd="npm run demo" data-stream="1">
+      <div class="cmdline"><span class="p">~/a2h</span> <span class="car">❯</span> <span class="cmd">npm run demo</span><span class="cmt"> # you are the human in the loop</span></div>
+      <div class="out">
+        <h2 class="vh">A human-in-the-loop demo</h2>
+        <div class="tl"><span class="cy">📬</span>  notify → "Daily deploy digest — web-app"   <span class="faint">[durable · status=delivered]</span></div>
+        <div class="tl"><span class="cy">📬</span>  NEW DECISION in your inbox:</div>
+        <div class="tl">        Ship the candidate build to prod, or hold?</div>
+        <div class="tl">          <span class="dim">• ship — Ship to prod now</span></div>
+        <div class="tl">          <span class="dim">• hold — Hold for review</span></div>
+        <div class="tl"><span class="vi">👤</span>  Your decision [ship/hold]: <span class="cy">ship</span></div>
+        <div class="tl"><span class="am">🔏</span>  Hub attested the actor, signed the Response, pushed it</div>
+        <div class="tl"><span class="gr">🤖</span>  Agent re-invoked: signature verified <span class="gr">✓</span>, sealed state opened <span class="gr">✓</span></div>
+        <div class="tl">        you chose "<span class="cy">ship</span>" → <span class="gr">🚀 DEPLOYING abc123def</span></div>
+        <div class="tl"><span class="am">🛡</span>   Replayed Response → acted=<span class="am">false</span> <span class="faint">(duplicate delivery, ignored)</span></div>
+      </div>
+    </section>
+
+    <section class="step" data-cmd="a2h docs">
+      <div class="cmdline"><span class="p">~/a2h</span> <span class="car">❯</span> <span class="cmd">a2h docs</span></div>
+      <div class="out">
+        <h2 class="vh">Documentation</h2>
+        <nav class="links" aria-label="A2H documentation">
+          <a class="lk" href="https://github.com/autnmy/a2h-protocol/blob/main/spec/v0.2.md"><span class="k">spec</span><span class="d">the normative v0.2 specification</span></a>
+          <a class="lk" href="https://github.com/autnmy/a2h-protocol/blob/main/skill/SKILL.md"><span class="k">skill</span><span class="d">integrate A2H in one shot (agent-native)</span></a>
+          <a class="lk" href="https://github.com/autnmy/a2h-protocol/tree/main/reference"><span class="k">reference</span><span class="d">strict-TypeScript implementation + a2h CLI</span></a>
+          <a class="lk" href="/schema/v0.2/message.schema.json"><span class="k">schemas</span><span class="d">JSON Schema 2020-12 · dereferenceable here</span></a>
+          <a class="lk" href="https://github.com/autnmy/a2h-protocol/tree/main/conformance"><span class="k">conformance</span><span class="d">vectors + downstream proof obligations</span></a>
+          <a class="lk" href="https://github.com/autnmy/a2h-protocol"><span class="k">repo</span><span class="d">github.com/autnmy/a2h-protocol</span></a>
+        </nav>
+      </div>
+    </section>
+
+    <section class="step" data-cmd="a2h rules">
+      <div class="cmdline"><span class="p">~/a2h</span> <span class="car">❯</span> <span class="cmd">a2h rules</span></div>
+      <div class="out">
+        <h2 class="vh">Trust rules</h2>
+        <ul class="rules">
+          <li>The Hub assigns the message <code>id</code>; <code>idempotency_key</code> is required on <code>ask</code>/<code>task</code>.</li>
+          <li><code>state</code> is agent-owned and AEAD-sealed — the Hub never holds the key; returned state is untrusted until verified.</li>
+          <li>Every pushed Response is signed (RFC 8785 JCS + detached signature); agents verify, dedupe, and act at most once.</li>
+          <li><code>actor</code> is Hub-attested; resolver authz is fail-closed; callbacks must target an agent-owned, verified host.</li>
+        </ul>
+      </div>
+    </section>
+
+  </div>
   <div class="cue gone" id="cue" aria-hidden="true"><span class="cuebtn" id="cuebtn" role="button" tabindex="-1">press <kbd>↵</kbd> or scroll <span class="chev">⌄</span></span></div>
   <div class="status">
     <span class="seg"><span class="pill">A2H</span> <span>v0.2 · draft</span></span>
@@ -132,67 +286,24 @@
 </main>
 <div id="track" aria-hidden="true"></div>
 
-<noscript>
-  <div style="max-width:720px;margin:40px auto;padding:0 20px;color:#d4dae3;font-family:monospace">
-    <h1>A2H — Agent-to-Human Protocol</h1>
-    <p>A vendor-neutral protocol for an agent to reach a human and get a decision back — the agent-to-human complement to A2A and MCP. Verbs: notify · ask · task.</p>
-    <p><a href="https://github.com/autnmy/a2h-protocol" style="color:#66b2ff">github.com/autnmy/a2h-protocol</a></p>
-  </div>
-</noscript>
-
 <script>
 (function(){
   // Always (re)start at the top — don't let the browser restore the prior scroll on refresh.
   if('scrollRestoration' in history){ try{ history.scrollRestoration = 'manual'; }catch(e){} }
   window.scrollTo(0, 0);
+
   var screen = document.getElementById('screen');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var stepEls = Array.prototype.slice.call(screen.querySelectorAll('.step'));
   function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
   function autoscroll(){ screen.scrollTop = screen.scrollHeight; }
   function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function el(cls, html){ var d=document.createElement('div'); if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; }
 
-  var OUT = {
-    about: { block:
-      '<div class="lead"><div class="mark">A<span class="s">2</span>H</div>'
-      + '<p class="tag">A vendor-neutral protocol for an agent to <b>reach a human and get a decision back</b>. The agent-to-human complement to A2A and MCP.</p>'
-      + '<pre class="map"><b>MCP</b>  →  agent ↔ tools\n<b>A2A</b>  →  agent ↔ agent\n<b>A2H</b>  →  agent ↔ human     <span class="gr">← this standard</span></pre></div>' },
-    verbs: { block:
-      '<dl class="verb">'
-      + '<dt>notify</dt><dd>FYI / summary / status. <b>No response.</b> <span class="faint">— a daily digest</span></dd>'
-      + '<dt>ask</dt><dd>A decision the human makes; the answer <b>routes back</b> to the (often exited) agent. <span class="faint">— ship / hold</span></dd>'
-      + '<dt>task</dt><dd>A manual action a human performs <b>out-of-band</b>, then marks done. <span class="faint">— rotate a key</span></dd>'
-      + '</dl>' },
-    docs: { block:
-      '<div class="links">'
-      + '<a class="lk" href="https://github.com/autnmy/a2h-protocol/blob/main/spec/v0.2.md"><span class="k">spec</span><span class="d">the normative v0.2 specification</span></a>'
-      + '<a class="lk" href="https://github.com/autnmy/a2h-protocol/blob/main/skill/SKILL.md"><span class="k">skill</span><span class="d">integrate A2H in one shot (agent-native)</span></a>'
-      + '<a class="lk" href="https://github.com/autnmy/a2h-protocol/tree/main/reference"><span class="k">reference</span><span class="d">strict-TypeScript implementation + a2h CLI</span></a>'
-      + '<a class="lk" href="/schema/v0.2/message.schema.json"><span class="k">schemas</span><span class="d">JSON Schema 2020-12 · dereferenceable here</span></a>'
-      + '<a class="lk" href="https://github.com/autnmy/a2h-protocol/tree/main/conformance"><span class="k">conformance</span><span class="d">vectors + downstream proof obligations</span></a>'
-      + '<a class="lk" href="https://github.com/autnmy/a2h-protocol"><span class="k">repo</span><span class="d">github.com/autnmy/a2h-protocol</span></a>'
-      + '</div>' },
-    rules: { block:
-      '<ul class="rules">'
-      + '<li>The Hub assigns the message <code>id</code>; <code>idempotency_key</code> is required on <code>ask</code>/<code>task</code>.</li>'
-      + '<li><code>state</code> is agent-owned and AEAD-sealed — the Hub never holds the key; returned state is untrusted until verified.</li>'
-      + '<li>Every pushed Response is signed (RFC 8785 JCS + detached signature); agents verify, dedupe, and act at most once.</li>'
-      + '<li><code>actor</code> is Hub-attested; resolver authz is fail-closed; callbacks must target an agent-owned, verified host.</li>'
-      + '</ul>' },
-    demo: { lines: [
-      '<span class="cy">📬</span>  notify → "Daily deploy digest — web-app"   <span class="faint">[durable · status=delivered]</span>',
-      '<span class="cy">📬</span>  NEW DECISION in your inbox:',
-      '        Ship the candidate build to prod, or hold?',
-      '          <span class="dim">• ship — Ship to prod now</span>',
-      '          <span class="dim">• hold — Hold for review</span>',
-      '<span class="vi">👤</span>  Your decision [ship/hold]: <span class="cy">ship</span>',
-      '<span class="am">🔏</span>  Hub attested the actor, signed the Response, pushed it',
-      '<span class="gr">🤖</span>  Agent re-invoked: signature verified <span class="gr">✓</span>, sealed state opened <span class="gr">✓</span>',
-      '        you chose "<span class="cy">ship</span>" → <span class="gr">🚀 DEPLOYING abc123def</span>',
-      '<span class="am">🛡</span>   Replayed Response → acted=<span class="am">false</span> <span class="faint">(duplicate delivery, ignored)</span>'
-    ] }
-  };
-  var HELP = { lines: [
+  // Single source of truth: the interactive prompt reuses the static blocks' rendered HTML.
+  var OUTPUTS = {};
+  stepEls.forEach(function(s){ var out=s.querySelector('.out'); OUTPUTS[s.getAttribute('data-cmd')] = out ? out.innerHTML : ''; });
+  var HELP = [
     'a2h about        what A2H is, in one screen',
     'a2h verbs        the three message verbs',
     'a2h docs         links to the spec, skill, schemas, repo',
@@ -200,38 +311,25 @@
     'a2h run-vectors  run the conformance vectors',
     'npm run demo     replay the human-in-the-loop demo',
     'clear            clear the screen'
-  ] };
+  ].map(function(l){ return '<div class="tl"><span class="faint">'+esc(l)+'</span></div>'; }).join('');
 
-  var steps = [
-    { cmd:'a2h about', out:OUT.about },
-    { cmd:'a2h verbs', out:OUT.verbs },
-    { cmd:'npm run demo', comment:'# you are the human in the loop', out:OUT.demo },
-    { cmd:'a2h docs', out:OUT.docs },
-    { cmd:'a2h rules', out:OUT.rules }
-  ];
-
-  function newCmdRow(gap){
-    var row = el('row');
-    if(screen.children.length && gap) row.style.marginTop = gap + 'px';
-    row.innerHTML = '<span class="p">~/a2h</span> <span class="car">❯</span> <span class="cmd"></span>';
-    screen.appendChild(row); autoscroll();
-    return row;
-  }
   async function typeInto(span, text, instant){
     if(instant){ span.textContent = text; autoscroll(); return; }
+    span.textContent = '';
     for(var i=0;i<text.length;i++){ span.textContent += text.charAt(i); autoscroll(); await sleep(28 + Math.random()*34); }
   }
-  async function printOut(out, instant){
-    if(!out) return;
-    if(out.block){ screen.appendChild(el('ln', out.block)); autoscroll(); return; }
-    if(out.lines){ for(var i=0;i<out.lines.length;i++){ screen.appendChild(el('tl', out.lines[i])); autoscroll(); if(!instant) await sleep(70); } }
-  }
-  async function reveal(step, instant){
-    var row = newCmdRow(54);
-    var cmd = row.querySelector('.cmd');
-    await typeInto(cmd, step.cmd, instant);
-    if(step.comment){ var c=el('cmt'); c.textContent=' '+step.comment; cmd.after(c); }
-    await printOut(step.out, instant);
+  async function revealStep(stepEl, instant){
+    stepEl.classList.add('shown');
+    await typeInto(stepEl.querySelector('.cmd'), stepEl.getAttribute('data-cmd'), instant);
+    var out = stepEl.querySelector('.out');
+    if(out){
+      out.classList.add('shown');
+      if(stepEl.getAttribute('data-stream') && !instant){
+        var lines = out.querySelectorAll('.tl');
+        for(var i=0;i<lines.length;i++){ lines[i].classList.add('shown'); autoscroll(); await sleep(70); }
+      }
+    }
+    autoscroll();
   }
 
   // ---- reveal engine (one-way) ----
@@ -239,25 +337,22 @@
   async function pump(){
     if(busy) return; busy=true;
     removeCue();
-    while(revealed < unlocked){ revealed++; await reveal(steps[revealed], false); }
+    while(revealed < unlocked){ revealed++; await revealStep(stepEls[revealed], false); }
     busy=false;
-    if(revealed === steps.length-1){ if(!doneAll){ doneAll=true; startInteractive(); } }
+    if(revealed === stepEls.length-1){ if(!doneAll){ doneAll=true; startInteractive(); } }
     else { showCueBelow(); }
   }
   function unlock(i){ if(i>unlocked){ unlocked=i; pump(); } }
 
-  // Enter / tap advances the reveal by scrolling the next sentinel to center,
-  // so the keyboard path and the scroll path drive the exact same unlock.
+  // Enter / tap advances the reveal by scrolling the next sentinel to center.
   var sentinelEls = [], navTarget = 0;
   var cueEl = document.getElementById('cue');
-  // The cue rides directly below the latest revealed block: detached while the
-  // next block types, re-appended at the bottom once we're idle and waiting.
   function removeCue(){ if(cueEl && cueEl.parentNode) cueEl.parentNode.removeChild(cueEl); }
   function showCueBelow(){ if(!cueEl) return; cueEl.classList.remove('gone'); screen.appendChild(cueEl); autoscroll(); }
   function revealNext(){
     if(doneAll) return;
     var furthest = Math.max(navTarget, unlocked);
-    if(furthest >= steps.length - 1){ navTarget = steps.length - 1; return; }
+    if(furthest >= stepEls.length - 1){ navTarget = stepEls.length - 1; return; }
     navTarget = furthest + 1;
     var s = sentinelEls[navTarget];
     if(s && s.scrollIntoView) s.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -281,17 +376,13 @@
     if(!reduce && window.matchMedia('(pointer:fine)').matches) focusInput();
   }
   function resolve(t){
-    if(!t) return { out:null };
+    if(!t) return null;
     if(t==='clear') return { clear:true };
-    if(t==='help' || t==='a2h' || t==='a2h help' || t==='a2h --help') return { out:HELP };
-    if(t==='a2h about') return { out:OUT.about };
-    if(t==='a2h verbs') return { out:OUT.verbs };
-    if(t==='a2h docs') return { out:OUT.docs };
-    if(t==='a2h rules') return { out:OUT.rules };
-    if(t==='a2h run-vectors' || t==='a2h vectors') return { out:{ lines:['<span class="cy">8 passed</span> · 0 failed · <span class="faint">1 skipped</span>'] } };
-    if(/^a2h (validate|sign|verify)\b/.test(t)) return { out:{ lines:['<span class="faint">usage:</span> '+esc(t.split(' ').slice(0,2).join(' '))+' … run it in the reference → github.com/autnmy/a2h-protocol'] } };
-    if(t==='npm run demo') return { out:OUT.demo };
-    return { out:{ lines:['<span class="am">command not found:</span> '+esc(t)] } };
+    if(t==='help' || t==='a2h' || t==='a2h help' || t==='a2h --help') return { html:HELP };
+    if(OUTPUTS.hasOwnProperty(t)) return { html:OUTPUTS[t] };
+    if(t==='a2h run-vectors' || t==='a2h vectors') return { html:'<div class="tl"><span class="cy">8 passed</span> · 0 failed · <span class="faint">1 skipped</span></div>' };
+    if(/^a2h (validate|sign|verify)\b/.test(t)) return { html:'<div class="tl"><span class="faint">usage:</span> '+esc(t.split(' ').slice(0,2).join(' '))+' … run it in the reference → github.com/autnmy/a2h-protocol</div>' };
+    return { html:'<div class="tl"><span class="am">command not found:</span> '+esc(t)+'</div>' };
   }
   async function submit(){
     var input = current; if(!input) return;
@@ -300,8 +391,8 @@
     var row = input.parentElement; var cur = row.querySelector('.cur'); if(cur) cur.remove();
     current = null;
     var res = resolve(text);
-    if(res.clear){ screen.innerHTML=''; addPrompt(0); return; }
-    await printOut(res.out, false);
+    if(res && res.clear){ screen.innerHTML=''; addPrompt(0); return; }
+    if(res && res.html){ screen.appendChild(el('out', res.html)); autoscroll(); }
     addPrompt(20);
   }
   function startInteractive(){
@@ -317,13 +408,16 @@
 
   // ---- init ----
   function init(){
+    document.documentElement.classList.remove('pre-reveal');
     if(reduce){
-      (async function(){ for(var i=0;i<steps.length;i++){ await reveal(steps[i], true); } startInteractive(); })();
+      // Static content is already visible; just offer the interactive prompt at the end.
+      startInteractive();
       return;
     }
     document.body.classList.add('motion');
+    document.body.classList.add('reveal');
     var track = document.getElementById('track');
-    var h=''; for(var i=0;i<steps.length;i++){ h += '<div class="sentinel" data-i="'+i+'"></div>'; }
+    var h=''; for(var i=0;i<stepEls.length;i++){ h += '<div class="sentinel" data-i="'+i+'"></div>'; }
     track.innerHTML = h;
     window.scrollTo(0, 0); // the track just made the page tall — pin to top before observing
     unlock(0);
@@ -332,8 +426,6 @@
     }, { rootMargin:'-45% 0px -45% 0px', threshold:0 });
     sentinelEls = Array.prototype.slice.call(document.querySelectorAll('.sentinel'));
     sentinelEls.forEach(function(s){ io.observe(s); });
-    // Use the captured cueEl, not getElementById: pump() has already run removeCue()
-    // by now (detaching the cue), so the button is out of the document tree.
     var cbtn = cueEl && cueEl.querySelector('.cuebtn');
     if(cbtn){
       cbtn.innerHTML = window.matchMedia('(pointer:fine)').matches
