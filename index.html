@@ -166,6 +166,7 @@
   .map{ margin:0; color:var(--dim); white-space:pre } .map b{ color:var(--fg) }
 
   .verb{ display:grid; grid-template-columns:7ch 1fr; gap:6px 16px; margin:6px 0 0 }
+  .verb.toolkit{ grid-template-columns:13ch 1fr }
   .verb dt{ color:var(--cyan); font-weight:500 } .verb dd{ margin:0; color:var(--dim) } .verb dd b{ color:var(--fg); font-weight:400 }
   .links{ margin:6px 0 0; display:grid; gap:3px }
   .links .lk{ display:grid; grid-template-columns:13ch 1fr; gap:14px; padding:2px 0; color:var(--fg) }
@@ -264,6 +265,22 @@
       </div>
     </section>
 
+    <section class="step" data-cmd="a2h skills">
+      <div class="cmdline"><span class="p">~/a2h</span> <span class="car">❯</span> <span class="cmd">a2h skills</span></div>
+      <div class="out">
+        <h2 class="vh">Agent-native skills</h2>
+        <p class="tag">Adopt A2H from your agent — <b>install the plugin, then build</b>:</p>
+        <pre class="map"><span class="faint">/plugin marketplace add</span> autnmy/a2h-protocol
+<span class="faint">/plugin install</span> a2h-skills@a2h</pre>
+        <dl class="verb toolkit">
+          <dt>implement</dt><dd>build a conformant A2H <b>Hub</b> in your app — any language or framework</dd>
+          <dt>build-notify</dt><dd>generate your app's <b>notify</b> sender skill</dd>
+          <dt>build-ask</dt><dd>generate your app's <b>ask</b> sender skill</dd>
+          <dt>build-task</dt><dd>generate your app's <b>task</b> sender skill</dd>
+        </dl>
+      </div>
+    </section>
+
     <section class="step" data-cmd="a2h rules">
       <div class="cmdline"><span class="p">~/a2h</span> <span class="car">❯</span> <span class="cmd">a2h rules</span></div>
       <div class="out">
@@ -308,6 +325,7 @@
     'a2h verbs        the three message verbs',
     'a2h docs         links to the spec, skill, schemas, repo',
     'a2h rules        the trust rules that matter',
+    'a2h skills       install the plugin — implement a Hub, build verb skills',
     'a2h run-vectors  run the conformance vectors',
     'npm run demo     replay the human-in-the-loop demo',
     'clear            clear the screen'
