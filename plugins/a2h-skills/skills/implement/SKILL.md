@@ -35,7 +35,7 @@ Inspect the repo and confirm with the implementer:
 
 ## 2. The required surface
 
-Implement these (paths are conventional — match the spec's shapes, adapt routing to the framework):
+Implement these over **HTTPS only** (plaintext MUST NOT be offered, §8). Paths are conventional — match the spec's shapes, adapt routing to the framework:
 
 | Method | Path | Purpose |
 |---|---|---|

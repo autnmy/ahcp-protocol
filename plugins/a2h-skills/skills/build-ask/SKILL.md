@@ -40,6 +40,10 @@ Inspect the repo (`AGENTS.md` / `CLAUDE.md` / `.env.example` / config), then ask
 - **Signature key** *(push only)* — for `push`, the per-agent secret the agent uses to **verify** the
   signed Response (distinct from any callback transport credential). **Pull mode needs no signature key** —
   the terminal response is trusted via the authenticated GET transport, so don't require one for a pull-only skill.
+- **State-seal key** *(if you send `state`)* — a per-`agent.id` secret **pre-positioned in the agent runtime**
+  (a CI/Actions secret, a vault env var) that **survives re-invocation**, is **distinct from the callback
+  credential**, and is **never embedded in `state`** — the resumed run uses it to open the sealed blob.
+  (This is separate from the response-signature key above; provision it whenever the skill resumes via `state`.)
 
 ### 2. Generate the skill
 Write `<skills-dir>/<app>-ask/SKILL.md` from the template below. For verification + sealing, prefer a small
@@ -104,18 +108,20 @@ The run may end here. When the human resolves it, the agent gets the terminal Re
   it's trusted via the authenticated GET transport + the immutable terminal record (no `jti` / detached signature).
 
 Then **MUST**:
-1. **(push only) Verify** the signature: recompute RFC 8785 JCS over the `signed_context`, check the
-   detached `A2H-Signature: t=<unix>,jti=<nonce>,v1=<base64url(sig)>` HMAC with the per-agent key, the `jti`
+1. **(push only) Verify** the signature: recompute RFC 8785 JCS over the `signed_context`, verify the
+   detached `A2H-Signature: t=<unix>,jti=<nonce>,v1=<base64url(sig)>` with the Hub's **advertised algorithm**
+   (`hmac-sha256` with the per-agent key, or `ed25519` — see capability `signature_algs`), the `jti`
    nonce (not seen before), the ±120s window (`t`), and the binding to `id` + `resolution_id` +
    `callback_url`. Reject on any mismatch. **Pull skips this step** — just read the terminal `response`.
 2. **Dedupe** on `(in_reply_to, resolution_id)` (where `in_reply_to` is the message `id`) and **act at most
    once** (callbacks may be delivered more than once).
 3. If you sent `state`, **verify + open** it (AEAD) before trusting it.
-4. Read the outcome by **`resolution` first** (`answered | declined | cancelled | expired`). Only `answered`
-   carries the human's answer in `response.value` (shape matches `request`). For `declined` / `cancelled` /
-   `expired` there is **no `response.value`** — branch on the resolution and act accordingly; **don't treat a
-   missing value as an error**. `response.comment` + `actor` may still be present, and an `expired` with
-   `defaulted: true` came from the Hub's `default_on_expire`.
+4. Read the outcome by **`resolution` first** (`answered | declined | cancelled | expired`). `response.value`
+   is present for **`answered`** (the human's answer, shape matches `request`) **and for a defaulted
+   `expired`** (`defaulted: true` ⇒ `value` is the `default_on_expire` choice, `actor:
+   "system:default_on_expire"`). For `declined` / `cancelled` / a **non-defaulted** `expired` there is **no
+   `response.value`** — branch on the resolution and **don't treat a missing value as an error**.
+   `response.comment` + `actor` may still be present.
 
 Use the A2H reference (`signing.verifyResponse`, `state-seal.openState`) for steps 1 (push) and 3.
 ````

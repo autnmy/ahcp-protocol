@@ -31,6 +31,9 @@ Inspect the repo (`AGENTS.md` / `CLAUDE.md` / `.env.example` / config), then ask
 - **Resume model** — how a finished run is re-invoked when the task resolves.
 - **Signature key** *(push only)* — for `push`, the per-agent secret used to **verify** the signed Response.
   **Pull mode needs no signature key** — the terminal response is trusted via the authenticated GET transport.
+- **State-seal key** *(if you send `state`)* — a per-`agent.id` secret **pre-positioned in the agent runtime**
+  that **survives re-invocation**, is **distinct from the callback credential**, and is **never embedded in
+  `state`** — the resumed run uses it to open the sealed blob. (Separate from the response-signature key.)
 
 ### 2. Generate the skill
 Write `<skills-dir>/<app>-task/SKILL.md` from the template below. For verification + sealing, prefer a
@@ -92,8 +95,9 @@ The run may end here. When the human resolves it, the agent gets the terminal Re
   via the authenticated GET transport + the immutable terminal record (no `jti` / detached signature).
 
 Then **MUST**:
-1. **(push only) Verify** the signature: recompute RFC 8785 JCS over the `signed_context`, check the
-   detached `A2H-Signature: t=<unix>,jti=<nonce>,v1=<base64url(sig)>` HMAC (per-agent key), the `jti`
+1. **(push only) Verify** the signature: recompute RFC 8785 JCS over the `signed_context`, verify the
+   detached `A2H-Signature: t=<unix>,jti=<nonce>,v1=<base64url(sig)>` with the Hub's **advertised algorithm**
+   (`hmac-sha256` per-agent key, or `ed25519` — see capability `signature_algs`), the `jti`
    nonce, the ±120s window (`t`), and the binding to `id` + `resolution_id` + `callback_url`. Reject on any
    mismatch. **Pull skips this step** — just read the terminal `response`.
 2. **Dedupe** on `(in_reply_to, resolution_id)` (where `in_reply_to` is the message `id`) and **act at most
