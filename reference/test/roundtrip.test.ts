@@ -147,8 +147,9 @@ test("a tampered state blob is rejected on resume (signature passes, AEAD catche
   assert.ok(st);
   const sealed = String(st["sealed"]);
   const parts = sealed.split(".");
-  const ct = parts[2]!;
-  const mutated = ct.slice(0, -1) + (ct.endsWith("A") ? "B" : "A");
+  const ctBuf = Buffer.from(parts[2]!, "base64url");
+  ctBuf[0] = ctBuf[0]! ^ 0xff; // deterministically corrupt a ciphertext byte
+  const mutated = ctBuf.toString("base64url");
   const tampered = { ...d.response, state: { sealed: [parts[0], parts[1], mutated, parts[3]].join(".") } };
 
   const r = agent.onResume(tampered, d.signature, T0 + 2_000);
