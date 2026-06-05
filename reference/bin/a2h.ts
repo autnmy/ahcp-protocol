@@ -126,7 +126,7 @@ function cmdDocs(): void {
   console.log(
     [
       "spec         https://a2hprotocol.org/spec/v0.2.md",
-      "skill        https://github.com/autnmy/a2h-protocol/blob/main/skill/SKILL.md",
+      "plugin       https://github.com/autnmy/a2h-protocol/tree/main/plugins/a2h-skills",
       "reference    https://github.com/autnmy/a2h-protocol/tree/main/reference",
       "schemas      https://a2hprotocol.org/schema/v0.2/message.schema.json",
       "conformance  https://github.com/autnmy/a2h-protocol/tree/main/conformance",
