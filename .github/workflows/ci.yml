@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Reference + conformance tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: reference/package-lock.json
+      - name: Install
+        working-directory: reference
+        run: npm ci
+      - name: Typecheck
+        working-directory: reference
+        run: npm run typecheck
+      - name: Test (reference unit + conformance vectors)
+        working-directory: reference
+        run: npm test
+
+  dco:
+    name: DCO sign-off
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify every commit carries a Signed-off-by
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          missing=0
+          for sha in $(git rev-list --no-merges "$BASE".."$HEAD"); do
+            if ! git log -1 --format='%B' "$sha" | grep -qiE '^Signed-off-by: .+ <.+@.+>'; then
+              subject=$(git log -1 --format='%s' "$sha")
+              echo "::error::Missing Signed-off-by (DCO) on ${sha} — \"${subject}\""
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "One or more commits are not signed off. Fix with: git rebase --signoff ${BASE}"
+            echo "See CONTRIBUTING.md (Sign-off / DCO)."
+            exit 1
+          fi
+          echo "All commits carry a Signed-off-by line."
