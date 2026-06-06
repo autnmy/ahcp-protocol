@@ -9,6 +9,15 @@ All notable changes to the A2H Protocol specification.
   JSON Schema alone see the Markdown contract the spec already mandates (§9.6). Annotation-only and
   non-validating — every previously-valid message stays valid and the schema `$id` is unchanged. (Body
   length remains capability-advertised via `max_body_bytes`, deliberately not a schema `maxLength`.)
+- **§9.1 now binds `cancel` — not only poll/callback — to the submitting principal.** The request-leg
+  auth rule names `POST /v1/messages/{id}/cancel` (§8.4) explicitly, closing a literal-conformance gap
+  where a Hub could let one authenticated agent terminally withdraw another agent's open `ask` by guessing
+  its `id`. Non-breaking: it surfaces the existing "`run_id` MUST NOT authorize cross-run access" contract
+  — the prior `poll/callback` enumeration was illustrative, not an exhaustive grant — and cancel, being
+  state-terminating, is the most sensitive of the three. No schema `$id` / version-path change. A
+  non-submitting principal SHOULD see the id as unknown (`404`), so the binding doubles as an
+  id-enumeration guard. §8.4 updated to match; conformance `pa-001` gains the assert and new
+  `dp-002-cancel-submitter-binding` records the Hub's proof obligation; the reference Hub now enforces it.
 
 ### Process
 - Added `CONTRIBUTING.md`, a spec-change-aware PR template, and an SCP (Spec Change Proposal) issue

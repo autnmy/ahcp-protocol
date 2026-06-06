@@ -10,7 +10,7 @@ implementations (including commercial ones) are measured against.
 ## What it covers
 
 Strict TypeScript (`tsc --noEmit` clean under `exactOptionalPropertyTypes`,
-`noUncheckedIndexedAccess`, `verbatimModuleSyntax`). 31 tests pass.
+`noUncheckedIndexedAccess`, `verbatimModuleSyntax`). 36 tests pass.
 
 | Module | Spec | Status |
 |--------|------|--------|
@@ -26,12 +26,13 @@ Strict TypeScript (`tsc --noEmit` clean under `exactOptionalPropertyTypes`,
 
 The `test/roundtrip.test.ts` suite demonstrates the §2.1 ephemeral resume flow end to end
 (exit → human-resolve → signed push → re-invoke → verify → open state → resume), plus first-terminal-wins,
-expiry-vs-answer precedence, at-most-once delivery, and AEAD state-tamper rejection.
+expiry-vs-answer precedence, at-most-once delivery, submitter-bound cancel/poll (§8.4/§9.1), and AEAD
+state-tamper rejection.
 
 ## Run
 
 ```bash
-cd reference && npm install && npm test        # tsx + node:test (33 tests)
+cd reference && npm install && npm test        # tsx + node:test (36 tests)
 npm run typecheck                               # tsc --noEmit (strict)
 npm run vectors                                 # execute the conformance vectors
 

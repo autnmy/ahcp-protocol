@@ -92,10 +92,49 @@ export class Hub {
     };
   }
 
-  get(id: string): GetResult {
+  get(id: string, principal?: string): GetResult {
     const r = this.store.get(id);
     if (!r) return null;
+    // Poll binding (§9.1): to a non-submitting principal the message is invisible.
+    if (principal !== undefined && r.message.agent.id !== principal) return null;
     return { ...r.message, id: r.id, status: r.status, ...(r.response ? { response: r.response } : {}) };
+  }
+
+  /**
+   * Agent-initiated withdrawal of an open `ask` (§8.4). Submitter-bound per §9.1:
+   * `principal` is the authenticated caller's `agent.id`. A caller that did not
+   * submit the message cannot learn it exists — a foreign id and an unknown id are
+   * indistinguishable (`not_found`), which makes the binding an id-enumeration guard
+   * and stops one agent from terminally withdrawing another's open ask. On success
+   * the `cancelled` Response is emitted and delivered like a resolve (push and/or
+   * pull), so the agent still gets closure.
+   */
+  cancel(id: string, principal: string, nowMs?: number): A2hResponse {
+    const record = this.store.get(id);
+    if (!record || record.message.agent.id !== principal) {
+      throw new HubError("not_found", `unknown message: ${id}`);
+    }
+    if (record.message.type !== "ask") {
+      throw new HubError("validation_error", "only an `ask` is cancellable in v0.2");
+    }
+    if (record.status !== "open") {
+      // first-terminal-wins: a prior terminal stands. A repeat cancel is idempotent;
+      // any other terminal is surfaced so the agent reads the real outcome.
+      if (record.status !== "cancelled") {
+        throw new HubError("already_terminal", `message already ${record.status}`);
+      }
+      return record.response as A2hResponse;
+    }
+    const t = nowMs ?? this.now();
+    applyResolution(record, {
+      resolution: "cancelled",
+      actor: `agent:${record.message.agent.id}`,
+      resolved_at: new Date(t).toISOString(),
+      resolution_id: newResolutionId(),
+      ...(record.message.state !== undefined ? { state: record.message.state } : {}),
+    });
+    this.deliver(record);
+    return record.response as A2hResponse;
   }
 
   /** Human/inbox resolution. Enforces fail-closed authz + expiry-vs-answer precedence. */

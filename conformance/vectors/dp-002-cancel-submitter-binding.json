@@ -1,0 +1,7 @@
+{
+  "id": "dp-002-cancel-submitter-binding",
+  "class": "downstream-proof",
+  "description": "Request-leg auth (§9.1): a message's poll/callback/cancel access is bound to the submitting principal. A second authenticated agent cannot terminally withdraw — or read — another agent's open ask by guessing its id. Behavioural authz a JSON Schema cannot check; proven against a conformant Hub.",
+  "ref": "spec §9.1, §8.4",
+  "obligation": "Agent A (credential scoped to agent.id = A) submits an open `ask` and receives id X. Agent B, authenticated to a different agent.id, calls POST /v1/messages/X/cancel. The Hub MUST NOT transition X to `cancelled`: it refuses the cross-principal cancel and SHOULD make X indistinguishable from an unknown id to B (`404`, not `403`, so the binding also guards against id-enumeration). The same binding applies to GET /v1/messages/X (poll) and to callback delivery — B can neither read X nor receive its Response. After B's attempt, X remains `open` and resolvable only by A's identity or A's declared `allowed_resolvers` (§9.1 fail-closed). A's own cancel of X succeeds (`200`, `status: cancelled`) and emits the terminal Response delivered like a resolve; a repeat cancel by A is idempotent (`200`), and a cancel after any other terminal returns `409 already_terminal`."
+}

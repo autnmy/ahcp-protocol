@@ -58,3 +58,6 @@ or load all five schemas into any Draft 2020-12 validator and check each vector'
    `resolution_id`; a human answer at/before `expires_at` beats `default_on_expire`.
 4. **State integrity** — a Response whose `state` was tampered is rejected by the agent (the seal key is
    per-agent, Hub-invisible; verify-before-use holds).
+5. **Request-leg auth** (`dp-002`) — a message's poll/callback/cancel access is bound to the submitting
+   principal: a second authenticated agent can neither read nor cancel another agent's message by id
+   (`run_id` does not authorize cross-run access), and the non-submitter sees `404`, not `403`.
