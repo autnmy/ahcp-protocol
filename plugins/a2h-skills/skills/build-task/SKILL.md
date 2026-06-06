@@ -1,5 +1,5 @@
 ---
-name: Build an A2H task skill
+name: build-task
 description: Scaffold a custom, app-specific "task" skill so this app's agents can ask a human to perform a manual, out-of-band action via an A2H Hub and learn when it's done. Use when an implementer wants to add A2H task to their app, hand a human a checklist or manual step (rotate a key, flip a setting), or wire the action leg of their app to OH HAI / an A2H Hub.
 ---
 
@@ -55,14 +55,14 @@ If other people's agents should also send to this Hub, offer to package the gene
 at `<plugin-root>/skills/<app>-task/SKILL.md` (move it there from `.claude/skills/`, or point the plugin's
 `skills` path at its location), then add `.claude-plugin/plugin.json` and a root
 `.claude-plugin/marketplace.json` listing it (bundle whichever verb skills the app exposes — notify/ask/task).
-Teammates run `/plugin marketplace add <this-repo>` → `/plugin install <app>-a2h@<marketplace>` and use
-`/<app>-task`. Validate with `claude plugin validate .`.
+Teammates run `/plugin marketplace add <this-repo>` → `/plugin install <app>-a2h@<marketplace>` and invoke
+it as `/<app>-a2h:<app>-task` (plugin skills are namespaced `/<plugin>:<skill>`). Validate with `claude plugin validate .`.
 
 ## Template — the generated `<app>-task` skill
 
 ````markdown
 ---
-name: <APP> task
+name: <app>-task
 description: Ask a human to perform a manual, out-of-band action via <APP>'s A2H Hub and learn when it's done. Use when an agent needs a human to do something it can't do itself before continuing.
 ---
 

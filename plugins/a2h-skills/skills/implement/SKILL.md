@@ -1,5 +1,5 @@
 ---
-name: Implement an A2H Hub
+name: implement
 description: >-
   Implement a conformant A2H Hub in your app — the server side that receives notify/ask/task from agents,
   presents them to a human for triage, and signs + routes the response back to the (often-exited) agent.

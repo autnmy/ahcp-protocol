@@ -10,8 +10,10 @@
 
 require "yaml"
 
-files = (Dir.glob("**/SKILL.md") + Dir.glob("SKILL.md")).uniq
-          .reject { |f| f.include?("node_modules") }
+# FNM_DOTMATCH so dot-prefixed dirs are scanned too — a project's `.claude/skills/<name>/SKILL.md`
+# (the builders' default output location) is otherwise skipped, letting malformed frontmatter slip past.
+files = (Dir.glob("**/SKILL.md", File::FNM_DOTMATCH) + Dir.glob("SKILL.md", File::FNM_DOTMATCH)).uniq
+          .reject { |f| f.split(File::SEPARATOR).any? { |seg| seg == "node_modules" || seg == ".git" } }
           .sort
 abort("::error::no SKILL.md files found") if files.empty?
 

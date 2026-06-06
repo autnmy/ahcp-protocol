@@ -1,5 +1,5 @@
 ---
-name: Build an A2H notify skill
+name: build-notify
 description: Scaffold a custom, app-specific "notify" skill so this app's agents can send fire-and-forget A2H notifications (digests, status, FYIs) to a human via an A2H Hub. Use when an implementer wants to add A2H notify to their app, give their agents a way to post notifications, or wire their app to OH HAI / an A2H Hub.
 ---
 
@@ -44,14 +44,14 @@ If other people's agents should also send to this Hub, offer to package the gene
 at `<plugin-root>/skills/<app>-notify/SKILL.md` (move it there from `.claude/skills/`, or point the plugin's
 `skills` path at its location), then add `.claude-plugin/plugin.json` and a root
 `.claude-plugin/marketplace.json` listing it (bundle whichever verb skills the app exposes — notify/ask/task).
-Teammates run `/plugin marketplace add <this-repo>` → `/plugin install <app>-a2h@<marketplace>` and use
-`/<app>-notify`. Validate with `claude plugin validate .`.
+Teammates run `/plugin marketplace add <this-repo>` → `/plugin install <app>-a2h@<marketplace>` and invoke
+it as `/<app>-a2h:<app>-notify` (plugin skills are namespaced `/<plugin>:<skill>`). Validate with `claude plugin validate .`.
 
 ## Template — the generated `<app>-notify` skill
 
 ````markdown
 ---
-name: <APP> notify
+name: <app>-notify
 description: Send a fire-and-forget notification to a human via <APP>'s A2H Hub (digest, status, FYI — no response expected). Use when an agent has something a human should see but no decision is needed.
 ---
 

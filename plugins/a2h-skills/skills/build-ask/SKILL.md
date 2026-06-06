@@ -1,5 +1,5 @@
 ---
-name: Build an A2H ask skill
+name: build-ask
 description: Scaffold a custom, app-specific "ask" skill so this app's agents can ask a human a decision via an A2H Hub and get the signed answer routed back. Use when an implementer wants to add A2H ask to their app, let agents request a human decision (approve/select/input), or wire the decision leg of their app to OH HAI / an A2H Hub.
 ---
 
@@ -66,14 +66,14 @@ If other people's agents should also send to this Hub, offer to package the gene
 at `<plugin-root>/skills/<app>-ask/SKILL.md` (move it there from `.claude/skills/`, or point the plugin's
 `skills` path at its location), then add `.claude-plugin/plugin.json` and a root
 `.claude-plugin/marketplace.json` listing it (bundle whichever verb skills the app exposes — notify/ask/task).
-Teammates run `/plugin marketplace add <this-repo>` → `/plugin install <app>-a2h@<marketplace>` and use
-`/<app>-ask`. Validate with `claude plugin validate .`.
+Teammates run `/plugin marketplace add <this-repo>` → `/plugin install <app>-a2h@<marketplace>` and invoke
+it as `/<app>-a2h:<app>-ask` (plugin skills are namespaced `/<plugin>:<skill>`). Validate with `claude plugin validate .`.
 
 ## Template — the generated `<app>-ask` skill
 
 ````markdown
 ---
-name: <APP> ask
+name: <app>-ask
 description: Ask a human a decision via <APP>'s A2H Hub and route the signed answer back to the agent. Use when an agent needs a human choice (approve/select/input) before it can proceed.
 ---
 
