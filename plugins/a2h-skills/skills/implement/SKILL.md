@@ -1,6 +1,11 @@
 ---
 name: Implement an A2H Hub
-description: Implement a conformant A2H Hub in your app — the server side that receives notify/ask/task from agents, presents them to a human for triage, and signs + routes the response back to the (often-exited) agent. Stack-agnostic: works in any language or framework (Node, Python, Go, Ruby, Rust, …). Use when implementing the A2H protocol, building an A2H Hub, or adding an agent-to-human inbox endpoint to your app. Triggers: "implement A2H", "build an A2H hub", "add an agent inbox to my app", "make my app speak A2H".
+description: >-
+  Implement a conformant A2H Hub in your app — the server side that receives notify/ask/task from agents,
+  presents them to a human for triage, and signs + routes the response back to the (often-exited) agent.
+  Stack-agnostic: works in any language or framework (Node, Python, Go, Ruby, Rust, …). Use when
+  implementing the A2H protocol, building an A2H Hub, or adding an agent-to-human inbox endpoint to your
+  app. Triggers: "implement A2H", "build an A2H hub", "add an agent inbox to my app", "make my app speak A2H".
 ---
 
 # Implement an A2H Hub in this app
@@ -42,7 +47,7 @@ Implement these over **HTTPS only** (plaintext MUST NOT be offered, §8). Paths 
 | POST | `/v1/messages` | ingest `notify`/`ask`/`task`; **Hub assigns `id`**; returns `202` + ack |
 | GET | `/v1/messages` · `/v1/messages/{id}` | inbox read; reads are **idempotent**; **pull-mode** clients read the terminal Response **embedded in the message body** of `GET /v1/messages/{id}` — trusted via the authenticated GET transport, **not signed** |
 | POST | `/v1/messages/{id}/resolve` | a human resolves an `ask`/`task` → triggers the signed response |
-| POST | `/v1/messages/{id}/cancel` | the agent withdraws an open `ask` → `cancelled` |
+| POST | `/v1/messages/{id}/cancel` | the agent withdraws an open `ask` → terminal `cancelled`, which **emits a terminal Response** delivered like a resolve (push and/or embedded for pull) so the agent gets closure |
 | GET | `/.well-known/a2h` | advertise limits + supported auth schemes (standardized discovery) |
 | GET | `/v1/stream` *(optional)* | SSE live tail for a live inbox |
 
@@ -55,7 +60,7 @@ implementation is done when each MUST below holds **and** the vectors pass.
 - [ ] **`id` is Hub-assigned**, never a client input. Clients correlate via `client_ref` (opaque; never a dedup key; never shown to resolvers).
 - [ ] **Idempotency:** `idempotency_key` is **required** for `ask`/`task`; dedup scope `(agent.id, idempotency_key)` → a retry with an **identical payload** returns the same `id`, never a second row/decision. Reusing the **same key with a different payload** MUST return **`409 Conflict`** (never silently the original `id`).
 - [ ] **`state` is agent-owned + sealed:** opaque AEAD blob; the **Hub MUST NOT inspect, log, or hold the key**; returned **verbatim** on resolution.
-- [ ] **Every pushed Response is signed:** RFC 8785 **JCS** over the `signed_context` + a **detached HMAC-SHA256**, with a `jti` nonce, a ±120s window, and binding to `id` + `resolution_id` + `callback_url`.
+- [ ] **Every pushed Response is signed:** RFC 8785 **JCS** over the `signed_context` + a **detached signature** — `hmac-sha256`, or `ed25519` if the Hub advertises it in capability `signature_algs` (§9.2) — with a `jti` nonce, a ±120s window, and binding to `id` + `resolution_id` + `callback_url`.
 - [ ] **`actor` is Hub-attested** from the authenticated session — never the resolving request body; format `<type>:<id>`, `type ∈ {human, agent, system}`.
 - [ ] **Resolver authz is fail-closed** (`allowed_resolvers` absent ⇒ only the submitting `agent.id` may resolve).
 - [ ] **Request-leg auth** (§9.1): the agent credential is scoped to one `agent.id` — **reject an envelope whose `agent.id` ≠ the credential (`403`)**, and **bind each message's poll/callback access to the submitting principal** (one agent must not read another's message by `id`); `run_id` is opaque and **MUST NOT** authorize cross-run access.
