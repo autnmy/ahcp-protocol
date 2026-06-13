@@ -3,12 +3,14 @@
 // `{ response, state }`, which (unlike signed_context) can carry numbers, arrays, and nesting.
 //
 // Numbers: `JSON.stringify(n)` is ECMAScript `Number::toString`, which RFC 8785 §3.2.2.3 is
-// *defined as* — so this is byte-exact RFC 8785 for every finite IEEE-754 double (proven by the
-// `dp-004` numeric vector: `1e-7`→`1e-7`, `1e21`→`1e+21`, `-0`→`0`, keys sorted). A signed numeric
-// payload value MUST therefore stay within double range: an integer beyond ±(2^53-1) cannot
-// round-trip and MUST be carried as a string. A non-JS implementation MUST use a vetted JCS library
-// whose number formatting matches `Number::toString` (and full Unicode normalization), or its
-// `payload_sha256` will diverge from a conformant signer's.
+// *defined as* — so this is byte-exact RFC 8785 for any finite number, ordinary decimals included
+// (`1e-7`→`1e-7`, `-0`→`0`, `-0.001`→`-0.001`; proven by the `dp-004` vector). A JSON number is an
+// IEEE-754 double, so an application needing an integer beyond ±(2^53-1) *exactly* must carry it as a
+// string (a bare number would silently round) — but any in-range number signs deterministically.
+//
+// Strings: RFC 8785 §3.1 preserves string content as-is and does NOT apply Unicode normalization;
+// only the §3.2.2.2 escaping is canonical. A non-JS implementation MUST use a vetted JCS library
+// (matching `Number::toString` + that string handling), or its `payload_sha256` will diverge.
 
 export function canonicalize(value: unknown): string {
   if (value === null) return "null";
