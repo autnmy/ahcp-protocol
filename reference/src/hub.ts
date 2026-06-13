@@ -22,6 +22,11 @@ import type {
   TaskMessage,
 } from "./types.js";
 
+/** Versions this reference Hub implements (spec §10). */
+const SUPPORTED_MAJOR = 0;
+const IMPLEMENTED_MINOR = 3;
+const HUB_VERSION = "0.3";
+
 export class HubError extends Error {
   constructor(
     public readonly code: string,
@@ -76,7 +81,42 @@ export class Hub {
     this.onDeliver = opts.onDeliver;
   }
 
+  /**
+   * Version negotiation (§10) — runs before schema validation so an unknown major returns
+   * `version_not_supported`, not a generic `validation_error`.
+   *
+   * - Rejects an unrecognized **major** (this Hub implements major 0).
+   * - Rejects a **pre-0.3 push** request: every pushed Response is signed with the v0.3
+   *   payload-bound `signed_context` (§9.2), which a pre-0.3 agent reconstructs differently and
+   *   rejects, so a v0.3 Hub's push is only verifiable by a v0.3+ agent. **Pull is unaffected** —
+   *   pull responses aren't signature-verified (§8.2) — so a pre-0.3 *pull* message is accepted.
+   *
+   * A malformed `a2h_version` falls through to schema validation (a `validation_error`).
+   */
+  private negotiateVersion(message: A2hMessage): void {
+    const raw = (message as { a2h_version?: unknown }).a2h_version;
+    if (typeof raw !== "string") return;
+    const m = /^(\d+)\.(\d+)$/.exec(raw);
+    if (!m) return;
+    const major = Number(m[1]);
+    const minor = Number(m[2]);
+    if (major !== SUPPORTED_MAJOR) {
+      throw new HubError(
+        "version_not_supported",
+        `a2h_version "${raw}": major ${major} is not supported (this Hub implements ${HUB_VERSION}; §10)`,
+      );
+    }
+    if (minor < IMPLEMENTED_MINOR && this.callbackOf(message)?.mode === "push") {
+      throw new HubError(
+        "version_not_supported",
+        `a2h_version "${raw}": push callbacks require >= ${HUB_VERSION}. The pushed Response is signed with ` +
+          `the v0.3 payload-bound signature (§9.2), which a pre-0.3 agent cannot verify. Use a pull callback, or upgrade.`,
+      );
+    }
+  }
+
   submit(message: A2hMessage): SubmitAck {
+    this.negotiateVersion(message);
     const v = validateMessage(message);
     if (!v.valid) throw new HubError("validation_error", `invalid message: ${v.errors.join("; ")}`);
     const id = newMessageId();
