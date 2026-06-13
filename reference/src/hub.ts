@@ -274,8 +274,11 @@ export class Hub {
   }
 
   private callbackOf(message: A2hMessage): Callback | undefined {
-    if (message.type === "ask") return message.request.callback;
-    if (message.type === "task") return message.action.callback;
+    // Defensive `?.`: reached from `negotiateVersion` BEFORE schema validation, where a malformed
+    // pre-0.3 ask/task may lack `request`/`action`. Read the callback without assuming structure so
+    // version negotiation never throws a raw TypeError ahead of the `validation_error` it should yield.
+    if (message.type === "ask") return message.request?.callback;
+    if (message.type === "task") return message.action?.callback;
     return undefined;
   }
 

@@ -69,3 +69,19 @@ test("a malformed a2h_version is a schema validation_error, not version_not_supp
   // Negotiation only fires on a parseable MAJOR.MINOR; anything else falls through to the schema.
   assert.throws(() => newHub().submit(makeAsk("x", PULL)), isCode("validation_error"));
 });
+
+test("a pre-0.3 ask missing `request` is a validation_error, not a TypeError (defensive callbackOf)", () => {
+  // Negotiation runs before schema validation; the push-parity check reads the callback, so a
+  // malformed ask/task lacking `request`/`action` must still yield a clean validation_error rather
+  // than crash. (Regression for the pre-validation TypeError codex flagged.)
+  const malformed = {
+    a2h_version: "0.2",
+    type: "ask",
+    created_at: new Date(T0).toISOString(),
+    agent: { id: "deploybot/dev-team", run_id: "run_1", runtime: "github-actions" },
+    title: "Ship?",
+    idempotency_key: "k1",
+    // request intentionally omitted — schema-invalid
+  } as unknown as A2hMessage;
+  assert.throws(() => newHub().submit(malformed), isCode("validation_error"));
+});
