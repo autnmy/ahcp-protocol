@@ -1,16 +1,16 @@
 ---
 name: implement
 description: >-
-  Implement a conformant A2H Hub in your app — the server side that receives notify/ask/task from agents,
+  Implement a conformant AHCP Hub in your app — the server side that receives notify/ask/task from agents,
   presents them to a human for triage, and signs + routes the response back to the (often-exited) agent.
   Stack-agnostic: works in any language or framework (Node, Python, Go, Ruby, Rust, …). Use when
-  implementing the A2H protocol, building an A2H Hub, or adding an agent-to-human inbox endpoint to your
-  app. Triggers: "implement A2H", "build an A2H hub", "add an agent inbox to my app", "make my app speak A2H".
+  implementing the AHCP protocol, building an AHCP Hub, or adding an agent-to-human inbox endpoint to your
+  app. Triggers: "implement AHCP", "build an AHCP hub", "add an agent inbox to my app", "make my app speak AHCP".
 ---
 
-# Implement an A2H Hub in this app
+# Implement an AHCP Hub in this app
 
-You are implementing the **server side** of the [A2H protocol](https://a2hprotocol.org) — a **Hub**: the
+You are implementing the **server side** of the [AHCP protocol](https://a2hprotocol.org) — a **Hub**: the
 endpoint that **receives** `notify` / `ask` / `task` from agents, presents them to a human to triage, and
 **signs + routes the response** back to the agent. This is the protocol implementation, the receiver.
 
@@ -102,6 +102,6 @@ Tell the implementer: the Hub is up at `<base-url>` with `<auth>`. **To let agen
 `build-notify` / `build-ask` / `build-task`** in the apps whose agents should reach this Hub.
 
 ## References
-- A2H: <https://a2hprotocol.org> · Spec: <https://a2hprotocol.org/spec/v0.2.md>
+- AHCP: <https://a2hprotocol.org> · Spec: <https://a2hprotocol.org/spec/v0.2.md>
 - Schemas: <https://a2hprotocol.org/schema/v0.2/message.schema.json>
 - Reference impl + conformance: <https://github.com/autnmy/a2h-protocol/tree/main/reference> · <https://github.com/autnmy/a2h-protocol/tree/main/conformance>

@@ -1,15 +1,15 @@
 ---
 name: build-ask
-description: Scaffold a custom, app-specific "ask" skill so this app's agents can ask a human a decision via an A2H Hub and get the signed answer routed back. Use when an implementer wants to add A2H ask to their app, let agents request a human decision (approve/select/input), or wire the decision leg of their app to OH HAI / an A2H Hub.
+description: Scaffold a custom, app-specific "ask" skill so this app's agents can ask a human a decision via an AHCP Hub and get the signed answer routed back. Use when an implementer wants to add AHCP ask to their app, let agents request a human decision (approve/select/input), or wire the decision leg of their app to OH HAI / an AHCP Hub.
 ---
 
-# Build an A2H `ask` skill for this app
+# Build an AHCP `ask` skill for this app
 
 You are scaffolding a **custom, app-specific `ask` skill** that THIS app's agents invoke to put a
-**decision** in front of a human via the app's A2H Hub, and have the **signed answer routed back** — even
+**decision** in front of a human via the app's AHCP Hub, and have the **signed answer routed back** — even
 if the agent run has already exited. You are the *builder*: you produce the skill.
 
-A2H is the Agent-to-Human Protocol — <https://a2hprotocol.org>. Unlike `notify`, `ask` has a **response
+AHCP is the Agent Human Coordination Protocol — <https://a2hprotocol.org>. Unlike `notify`, `ask` has a **response
 leg**, which makes it the most involved verb. Get these right in the generated skill:
 
 - **`idempotency_key` is REQUIRED** — stable per logical request, scope `(agent.id, idempotency_key)`, so a
@@ -28,7 +28,7 @@ leg**, which makes it the most involved verb. Get these right in the generated s
 
 ## Steps
 
-### 1. Gather the app's A2H config
+### 1. Gather the app's AHCP config
 Inspect the repo (`AGENTS.md` / `CLAUDE.md` / `.env.example` / config), then ask for what's missing:
 - **App name / slug** → names the skill (e.g. `acme-ask`).
 - **Hub base URL** + **agent auth** — the Hub's advertised `bearer`/`apikey` scheme (env var; never hardcode).
@@ -48,7 +48,7 @@ Inspect the repo (`AGENTS.md` / `CLAUDE.md` / `.env.example` / config), then ask
 
 ### 2. Generate the skill
 Write `<skills-dir>/<app>-ask/SKILL.md` from the template below. For verification + sealing, prefer a small
-helper that uses the A2H reference primitives (`canonicalize`, `signing.verifyResponse`, `state-seal`) —
+helper that uses the AHCP reference primitives (`canonicalize`, `signing.verifyResponse`, `state-seal`) —
 see the [reference implementation](https://github.com/autnmy/a2h-protocol/tree/main/reference) — rather
 than re-deriving crypto.
 
@@ -74,10 +74,10 @@ it as `/<app>-a2h:<app>-ask` (plugin skills are namespaced `/<plugin>:<skill>`).
 ````markdown
 ---
 name: <app>-ask
-description: Ask a human a decision via <APP>'s A2H Hub and route the signed answer back to the agent. Use when an agent needs a human choice (approve/select/input) before it can proceed.
+description: Ask a human a decision via <APP>'s AHCP Hub and route the signed answer back to the agent. Use when an agent needs a human choice (approve/select/input) before it can proceed.
 ---
 
-# Ask a human a decision (A2H `ask`)
+# Ask a human a decision (AHCP `ask`)
 
 ## Send
 - **Endpoint:** `POST <HUB_URL>/v1/messages`  ·  **Auth:** the Hub's advertised scheme (capability `auth_schemes`) — `Authorization: Bearer $<AUTH_ENV>` for `bearer`, or the API-key header for `apikey`
@@ -129,7 +129,7 @@ Then **MUST**:
    `response.value`** — branch on the resolution and **don't treat a missing value as an error**.
    `response.comment` + `actor` may still be present.
 
-Use the A2H reference (`signing.verifyResponse`, `state-seal.openState`) for steps 1 (push) and 3 — but
+Use the AHCP reference (`signing.verifyResponse`, `state-seal.openState`) for steps 1 (push) and 3 — but
 note `signing.verifyResponse` implements **`hmac-sha256` only** in v0.2; if the Hub advertises **`ed25519`**,
 verify the detached signature over the same JCS `signed_context` with your platform's ed25519 primitive,
 **not** that helper (it returns `alg not implemented: ed25519`).

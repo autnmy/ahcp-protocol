@@ -1,26 +1,26 @@
 ---
 name: build-notify
-description: Scaffold a custom, app-specific "notify" skill so this app's agents can send fire-and-forget A2H notifications (digests, status, FYIs) to a human via an A2H Hub. Use when an implementer wants to add A2H notify to their app, give their agents a way to post notifications, or wire their app to OH HAI / an A2H Hub.
+description: Scaffold a custom, app-specific "notify" skill so this app's agents can send fire-and-forget AHCP notifications (digests, status, FYIs) to a human via an AHCP Hub. Use when an implementer wants to add AHCP notify to their app, give their agents a way to post notifications, or wire their app to OH HAI / an AHCP Hub.
 ---
 
-# Build an A2H `notify` skill for this app
+# Build an AHCP `notify` skill for this app
 
 You are scaffolding a **custom, app-specific `notify` skill** that THIS app's agents will invoke to send
-an A2H **notify** (FYI / summary / status — no response) to the app's A2H Hub. You are the *builder*: you
+an AHCP **notify** (FYI / summary / status — no response) to the app's AHCP Hub. You are the *builder*: you
 produce the skill; you do not send notifications yourself.
 
-A2H is the Agent-to-Human Protocol — <https://a2hprotocol.org>. `notify` is **fire-and-forget**: post the
+AHCP is the Agent Human Coordination Protocol — <https://a2hprotocol.org>. `notify` is **fire-and-forget**: post the
 message, get `202`, done. No callback, no resume, no idempotency key required.
 
 ## Steps
 
-### 1. Gather the app's A2H config
+### 1. Gather the app's AHCP config
 Inspect the repo first (`AGENTS.md` / `CLAUDE.md` / `.env.example` / existing config), then ask the user
 only for what's missing:
 - **App name / slug** → names the generated skill (e.g. `acme-notify`).
 - **Hub base URL** (e.g. `https://hub.acme.com`). Limits can be discovered at `GET {HUB}/.well-known/a2h`.
 - **Auth** — the Hub's **advertised scheme** (capability `auth_schemes`: `bearer` or `apikey`), the
-  credential (env var name like `A2H_TOKEN`, a secret manager, etc.), and the header to send for it.
+  credential (env var name like `AHCP_TOKEN`, a secret manager, etc.), and the header to send for it.
   **Never hardcode** the credential in the generated skill.
 - **Agent identity** — how to fill `agent.id` / `agent.run_id` / `agent.runtime` / `agent.project` from
   the app's runtime.
@@ -52,12 +52,12 @@ it as `/<app>-a2h:<app>-notify` (plugin skills are namespaced `/<plugin>:<skill>
 ````markdown
 ---
 name: <app>-notify
-description: Send a fire-and-forget notification to a human via <APP>'s A2H Hub (digest, status, FYI — no response expected). Use when an agent has something a human should see but no decision is needed.
+description: Send a fire-and-forget notification to a human via <APP>'s AHCP Hub (digest, status, FYI — no response expected). Use when an agent has something a human should see but no decision is needed.
 ---
 
-# Send an A2H `notify`
+# Send an AHCP `notify`
 
-Compose and POST an A2H `notify` to <APP>'s Hub. Fire-and-forget — do not wait for a reply.
+Compose and POST an AHCP `notify` to <APP>'s Hub. Fire-and-forget — do not wait for a reply.
 
 - **Endpoint:** `POST <HUB_URL>/v1/messages`
 - **Auth:** the Hub's advertised scheme (capability `auth_schemes`) — `Authorization: Bearer $<AUTH_ENV>` for `bearer`, or the API-key header for `apikey`; read from the environment, never hardcode
@@ -96,4 +96,4 @@ curl -sS -X POST "<HUB_URL>/v1/messages" \
 
 ## References
 - Spec: <https://a2hprotocol.org/spec/v0.2.md> · Message schema: <https://a2hprotocol.org/schema/v0.2/message.schema.json>
-- A2H overview: <https://a2hprotocol.org>
+- AHCP overview: <https://a2hprotocol.org>

@@ -1,4 +1,4 @@
-// A2H playground — YOU are the human in the loop.
+// AHCP playground — YOU are the human in the loop.
 //
 //   npm run demo
 //
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
   const hub = new Hub({ signingKey: HUB_KEY, onDeliver: (p) => { pushes.push(p); } });
   const agent = new Agent({ callbackUrl: RESUME_URL, callbackKey: HUB_KEY, sealKey });
 
-  console.log("\n=== A2H playground — you are the human in the loop ===\n");
+  console.log("\n=== AHCP playground — you are the human in the loop ===\n");
 
   const notify: A2hMessage = {
     a2h_version: "0.3",

@@ -1,14 +1,14 @@
-# A2H Governance
+# AHCP Governance
 
 **Status:** Draft · **Steward:** Autonomy
 
 ## 1. Stewardship model
 
-A2H is currently **steward-governed** by Autonomy LLC. Autonomy maintains the spec, schema, and reference
+AHCP is currently **steward-governed** by Autonomy LLC. Autonomy maintains the spec, schema, and reference
 implementation, and arbitrates changes. This is the initial phase, modeled on how MCP (Anthropic) and A2A
 (Google) each began before moving to neutral foundations.
 
-**Stated intent:** Autonomy LLC will transfer governance of A2H to a vendor-neutral foundation once
+**Stated intent:** Autonomy LLC will transfer governance of AHCP to a vendor-neutral foundation once
 adoption warrants. Candidate homes:
 
 - The **W3C AI Agent Protocol Community Group** — royalty-free patent commitments via the W3C CLA/FSA.
@@ -20,9 +20,9 @@ neutral and cleanly donate-able.
 
 ## 2. Protocol vs. product
 
-A2H (this repository) is an **open standard**. It is distinct from **the Hub** — Autonomy LLC's hosted
-server and native triage application that *implement* A2H. The Hub is a separate, proprietary commercial
-product. Nothing in A2H requires the Hub; any conformant implementation — open-source or commercial — is a
+AHCP (this repository) is an **open standard**. It is distinct from **the Hub** — Autonomy LLC's hosted
+server and native triage application that *implement* AHCP. The Hub is a separate, proprietary commercial
+product. Nothing in AHCP requires the Hub; any conformant implementation — open-source or commercial — is a
 first-class citizen. Keeping these separate is intentional: the standard must be neutral to be adopted,
 and the product competes on merit like any other implementation.
 
@@ -34,7 +34,7 @@ and the product competes on merit like any other implementation.
 
 ## 4. Change process
 
-Substantive changes follow a lightweight proposal flow — an **A2H Enhancement Proposal (AEP)**, modeled on
+Substantive changes follow a lightweight proposal flow — an **AHCP Enhancement Proposal (AEP)**, modeled on
 MCP's SEP process and IETF Internet-Drafts:
 
 1. Open an issue describing the problem and the proposed change.

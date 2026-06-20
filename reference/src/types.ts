@@ -1,4 +1,4 @@
-// A2H domain types — strongly typed to spec/v0.3.md and schema/v0.3/*.
+// AHCP domain types — strongly typed to spec/v0.3.md and schema/v0.3/*.
 // The discriminated unions mirror the JSON Schema `oneOf` branches exactly, so
 // the type system enforces the same shape rules the schemas do.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node --import tsx
-// A2H reference CLI — validate / sign / verify / run-vectors.
+// AHCP reference CLI — validate / sign / verify / run-vectors.
 // Run: npm run a2h -- <cmd> ...   or   node --import tsx bin/a2h.ts <cmd> ...
 
 import { readFileSync } from "node:fs";
@@ -104,14 +104,14 @@ function cmdVectors(): void {
 function cmdAbout(): void {
   console.log(
     [
-      "A2H — Agent-to-Human Protocol",
+      "AHCP — Agent Human Coordination Protocol",
       "",
       "A vendor-neutral protocol for an agent to reach a human and get a decision",
-      "back. The agent-to-human complement to A2A and MCP.",
+      "back. The agent↔human complement to A2A and MCP.",
       "",
-      "  MCP  →  agent ↔ tools",
-      "  A2A  →  agent ↔ agent",
-      "  A2H  →  agent ↔ human     ← this standard",
+      "  MCP   →  agent ↔ tools",
+      "  A2A   →  agent ↔ agent",
+      "  AHCP  →  agent ↔ human     ← this standard",
       "",
       "verbs: notify · ask · task        https://a2hprotocol.org",
     ].join("\n"),
@@ -188,9 +188,9 @@ switch (cmd) {
   default:
     console.log(
       [
-        "a2h — A2H reference CLI",
+        "a2h — AHCP reference CLI",
         "",
-        "  a2h about                 what A2H is, in one screen",
+        "  a2h about                 what AHCP is, in one screen",
         "  a2h verbs                 the three message verbs",
         "  a2h docs                  links to the spec, skill, schemas, repo",
         "  a2h rules                 the trust rules that matter",

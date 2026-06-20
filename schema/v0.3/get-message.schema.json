@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://a2hprotocol.org/schema/v0.3/get-message.schema.json",
-  "title": "A2H GET Message Body (v0.3)",
+  "title": "AHCP GET Message Body (v0.3)",
   "description": "Body of GET /v1/messages/{id}: the original message plus current `status`, the Hub-assigned `id`, and (once terminal) the embedded `response`.",
   "type": "object",
   "required": ["id", "status"],

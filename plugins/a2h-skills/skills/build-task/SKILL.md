@@ -1,15 +1,15 @@
 ---
 name: build-task
-description: Scaffold a custom, app-specific "task" skill so this app's agents can ask a human to perform a manual, out-of-band action via an A2H Hub and learn when it's done. Use when an implementer wants to add A2H task to their app, hand a human a checklist or manual step (rotate a key, flip a setting), or wire the action leg of their app to OH HAI / an A2H Hub.
+description: Scaffold a custom, app-specific "task" skill so this app's agents can ask a human to perform a manual, out-of-band action via an AHCP Hub and learn when it's done. Use when an implementer wants to add AHCP task to their app, hand a human a checklist or manual step (rotate a key, flip a setting), or wire the action leg of their app to OH HAI / an AHCP Hub.
 ---
 
-# Build an A2H `task` skill for this app
+# Build an AHCP `task` skill for this app
 
 You are scaffolding a **custom, app-specific `task` skill** that THIS app's agents invoke to hand a human a
 **manual action to perform out-of-band** (something the agent can't do itself — rotate a key, flip a
 production setting, sign a doc) and get told when it's **done** or **dismissed**. You are the *builder*.
 
-A2H is the Agent-to-Human Protocol — <https://a2hprotocol.org>. `task` shares `ask`'s **response leg** and
+AHCP is the Agent Human Coordination Protocol — <https://a2hprotocol.org>. `task` shares `ask`'s **response leg** and
 its security contract; only the payload and resolution values differ:
 
 - **`idempotency_key` is REQUIRED** (scope `(agent.id, idempotency_key)`), so a retried submit never
@@ -21,7 +21,7 @@ its security contract; only the payload and resolution values differ:
 
 ## Steps
 
-### 1. Gather the app's A2H config
+### 1. Gather the app's AHCP config
 Inspect the repo (`AGENTS.md` / `CLAUDE.md` / `.env.example` / config), then ask for what's missing:
 - **App name / slug** → names the skill (e.g. `acme-task`).
 - **Hub base URL** + **agent auth** — the Hub's advertised `bearer`/`apikey` scheme (env var; never hardcode).
@@ -38,7 +38,7 @@ Inspect the repo (`AGENTS.md` / `CLAUDE.md` / `.env.example` / config), then ask
 
 ### 2. Generate the skill
 Write `<skills-dir>/<app>-task/SKILL.md` from the template below. For verification + sealing, prefer a
-helper built on the A2H reference primitives (`signing.verifyResponse`, `state-seal`) rather than
+helper built on the AHCP reference primitives (`signing.verifyResponse`, `state-seal`) rather than
 re-deriving crypto — see the [reference implementation](https://github.com/autnmy/a2h-protocol/tree/main/reference).
 
 ### 3. Verify
@@ -63,10 +63,10 @@ it as `/<app>-a2h:<app>-task` (plugin skills are namespaced `/<plugin>:<skill>`)
 ````markdown
 ---
 name: <app>-task
-description: Ask a human to perform a manual, out-of-band action via <APP>'s A2H Hub and learn when it's done. Use when an agent needs a human to do something it can't do itself before continuing.
+description: Ask a human to perform a manual, out-of-band action via <APP>'s AHCP Hub and learn when it's done. Use when an agent needs a human to do something it can't do itself before continuing.
 ---
 
-# Ask a human to do a task (A2H `task`)
+# Ask a human to do a task (AHCP `task`)
 
 ## Send
 - **Endpoint:** `POST <HUB_URL>/v1/messages`  ·  **Auth:** the Hub's advertised scheme (capability `auth_schemes`) — `Authorization: Bearer $<AUTH_ENV>` for `bearer`, or the API-key header for `apikey`
@@ -114,7 +114,7 @@ Then **MUST**:
    `response.comment` and/or the final `checklist` state — there is **no `response.value`** (that field is
    reserved for `ask`).
 
-Use the A2H reference (`signing.verifyResponse`, `state-seal.openState`) for steps 1 (push) and 3 — but
+Use the AHCP reference (`signing.verifyResponse`, `state-seal.openState`) for steps 1 (push) and 3 — but
 note `signing.verifyResponse` implements **`hmac-sha256` only** in v0.2; if the Hub advertises **`ed25519`**,
 verify the detached signature over the same JCS `signed_context` with your platform's ed25519 primitive,
 **not** that helper (it returns `alg not implemented: ed25519`).

@@ -1,4 +1,4 @@
-// A2H detached Response signature — spec §9.2.
+// AHCP detached Response signature — spec §9.2.
 //
 // The Hub signs a canonical `signed_context` (NOT the raw HTTP body) so the
 // signature is bound to id + resolution_id + callback_url and cannot be replayed

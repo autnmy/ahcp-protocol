@@ -1,4 +1,4 @@
-# A2H Conformance Vectors (v0.3)
+# AHCP Conformance Vectors (v0.3)
 
 These vectors let an implementer prove conformance. **Read this first** — it states what the vectors can
 and cannot verify, so green ≠ false confidence (spec §12).
