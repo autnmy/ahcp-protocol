@@ -1,8 +1,17 @@
 # Changelog
 
-All notable changes to the A2H Protocol specification.
+All notable changes to the AHCP (Agent Human Coordination Protocol) specification.
 
 ## Unreleased
+
+### Changed
+- **Rebrand: A2H → AHCP.** The protocol's name is now **AHCP — Agent Human Coordination Protocol**
+  (formerly *A2H — Agent-to-Human Protocol*). This is a **naming and documentation change only** — no
+  protocol semantics, message shapes, schemas, endpoints, or version changed, and `a2h_version` is
+  unchanged. The on-the-wire and distribution identifiers (`a2h_version`, the `A2H-Signature` header,
+  `A2H_CALLBACK_SECRET`, `/.well-known/a2h`, `x-a2h-sensitive`, schema `$id`s, the `@a2h/reference`
+  package, the `a2h` CLI, and the `a2h-skills` plugin) retain the frozen `a2h` slug. See
+  [MIGRATION.md](MIGRATION.md). No conformant implementation needs to change to remain conformant.
 
 ### Added
 - **Reference Hub version negotiation (§10).** The reference Hub now rejects a message whose `a2h_version`
