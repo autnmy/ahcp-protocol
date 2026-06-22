@@ -1,7 +1,7 @@
 # Suggested Documentation Structure (Advisory)
 
 **Date:** 2026-06-20 · **Status:** advisory proposal — **no files are moved by this document.** It maps
-the current repository into a mature, author-independent documentation structure and notes gaps, so AHCP
+the current repository into a mature, author-independent documentation structure and notes gaps, so MA2H
 reads like a serious protocol-standards project to someone arriving with no prior context.
 
 The guiding test: a reader finding this repository three years from now, with no access to the original
@@ -16,17 +16,17 @@ Ordered from "first contact" to "deep implementation":
 
 | Layer | Purpose | Current home | Status |
 |-------|---------|--------------|--------|
-| **1. Landing / overview** | One-screen answer to "what is AHCP and why". | `README.md`, `index.html` | ✅ present (rebranded) |
+| **1. Landing / overview** | One-screen answer to "what is MA2H and why". | `README.md`, `index.html` | ✅ present (rebranded) |
 | **2. Concepts / rationale** | The problem, the hub-and-spoke model, the three verbs, non-goals. | `README.md` (Overview, Problem, Hub, Non-goals) | ✅ present; could graduate to a dedicated `docs/concepts.md` if the README grows |
 | **3. Normative specification** | The authoritative contract. | `spec/v0.3.md` (current), `spec/v0.2.md`, `spec/v0.1.md` (history) | ✅ present |
 | **4. Schemas** | Machine-readable message/response/ack/capability schemas. | `schema/v0.3/…`, `schema/v0.2/…`, `schema/v0.1/…` | ✅ present |
 | **5. Examples** | Concrete envelopes for every verb + responses + the resume callback. | `examples/` | ✅ present |
 | **6. Conformance** | Vector format, verification classes, proof obligations. | `conformance/` | ✅ present |
-| **7. Reference implementation** | Vendor-neutral implementation + `ahcp` CLI. | `reference/` | ✅ present |
-| **8. Adoption / integration** | How to implement a Hub or wire an agent (the plugin). | `plugins/ahcp-skills/` | ✅ present |
+| **7. Reference implementation** | Vendor-neutral implementation + `ma2h` CLI. | `reference/` | ✅ present |
+| **8. Adoption / integration** | How to implement a Hub or wire an agent (the plugin). | `plugins/ma2h-skills/` | ✅ present |
 | **9. Migration** | Version-to-version and naming changes. | `CHANGELOG.md`, `MIGRATION.md` | ✅ present |
 | **10. Governance / contributing** | Stewardship, protocol-vs-product, spec-change process, license. | `GOVERNANCE.md`, `CONTRIBUTING.md`, `NOTICE`, `LICENSE` | ✅ present |
-| **11. Working notes** | Internal plans, audits, advisory reviews. | `docs/plans/`, `docs/ahcp-rebrand-audit.md`, this file | ✅ present |
+| **11. Working notes** | Internal plans, audits, advisory reviews. | `docs/plans/`, `docs/ma2h-rebrand-audit.md`, this file | ✅ present |
 
 The repository already covers every layer. The recommendations below are refinements, not missing
 pillars.
@@ -47,12 +47,12 @@ schema/  v0.3/  v0.2/  v0.1/
 examples/
 conformance/
 reference/
-plugins/ahcp-skills/
+plugins/ma2h-skills/
 docs/
   concepts.md                     ← (optional) if README's concepts outgrow it
   spec-improvement-recommendations.md
   documentation-structure.md      ← this file
-  ahcp-rebrand-audit.md
+  ma2h-rebrand-audit.md
   ROADMAP.md                      ← (proposed) non-normative roadmap moved out of spec §10
   plans/
 ```

@@ -13,21 +13,21 @@ keywords are used throughout. The items below are refinements, not corrections.
 
 ---
 
-## R1 — Document that the `ahcp` wire identifiers are frozen going forward (highest value)
+## R1 — Document that the `ma2h` wire identifiers are frozen going forward (highest value)
 
-**Observation.** The protocol identity is now uniformly `ahcp` — the `a2h` slug was fully retired in the
+**Observation.** The protocol identity is now uniformly `ma2h` — the `a2h` slug was fully retired in the
 pre-1.0 rename (see `MIGRATION.md`), so the earlier brand↔slug *split* this section once flagged no longer
 exists. What remains worth protecting is the same hazard in the new identity: a future "consistency
-cleanup" could rename a wire identifier (`ahcp_version`, the `AHCP-Signature` header, `AHCP_CALLBACK_SECRET`,
-`/.well-known/ahcp`, `x-ahcp-sensitive`) or the schema `$id` host and **unknowingly ship a breaking
+cleanup" could rename a wire identifier (`ma2h_version`, the `MA2H-Signature` header, `MA2H_CALLBACK_SECRET`,
+`/.well-known/ma2h`, `x-ma2h-sensitive`) or the schema `$id` host and **unknowingly ship a breaking
 change** — changing the signed bytes / discovery path / field name and breaking every implementation and
 conformance vector.
 
 **Recommendation.** Add a single non-normative note near §1 or §10:
 
-> *Frozen identifiers: the wire identifiers — `ahcp_version`, the `AHCP-Signature` header,
-> `AHCP_CALLBACK_SECRET`, `/.well-known/ahcp`, `x-ahcp-sensitive` — and the schema `$id` host
-> `ahcpprotocol.org` are part of the interoperability contract and MUST NOT be renamed without a major
+> *Frozen identifiers: the wire identifiers — `ma2h_version`, the `MA2H-Signature` header,
+> `MA2H_CALLBACK_SECRET`, `/.well-known/ma2h`, `x-ma2h-sensitive` — and the schema `$id` host
+> `ma2h.org` are part of the interoperability contract and MUST NOT be renamed without a major
 > version bump.*
 
 This is a clarity addition (no wire change). The CI `scripts/check-frozen-identifiers.sh` guard already
@@ -90,7 +90,7 @@ cross-reference only.
 
 ## R6 — Make the schema `$id` ↔ path relationship explicit in the spec
 
-**Observation.** Schemas are served from `schema/vX.Y/…` but carry `$id`s on `ahcpprotocol.org`.
+**Observation.** Schemas are served from `schema/vX.Y/…` but carry `$id`s on `ma2h.org`.
 `CONTRIBUTING.md` documents the freeze rule (a non-breaking change keeps the existing `$id`); the spec
 itself does not restate where the canonical schema lives or how `$id` relates to the served path.
 

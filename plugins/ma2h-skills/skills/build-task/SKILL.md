@@ -1,15 +1,15 @@
 ---
 name: build-task
-description: Scaffold a custom, app-specific "task" skill so this app's agents can ask a human to perform a manual, out-of-band action via an AHCP Hub and learn when it's done. Use when an implementer wants to add AHCP task to their app, hand a human a checklist or manual step (rotate a key, flip a setting), or wire the action leg of their app to an AHCP Hub.
+description: Scaffold a custom, app-specific "task" skill so this app's agents can ask a human to perform a manual, out-of-band action via an MA2H Hub and learn when it's done. Use when an implementer wants to add MA2H task to their app, hand a human a checklist or manual step (rotate a key, flip a setting), or wire the action leg of their app to an MA2H Hub.
 ---
 
-# Build an AHCP `task` skill for this app
+# Build an MA2H `task` skill for this app
 
 You are scaffolding a **custom, app-specific `task` skill** that THIS app's agents invoke to hand a human a
 **manual action to perform out-of-band** (something the agent can't do itself — rotate a key, flip a
 production setting, sign a doc) and get told when it's **done** or **dismissed**. You are the *builder*.
 
-AHCP is the Agent Human Coordination Protocol — <https://ahcpprotocol.org>. `task` shares `ask`'s **response leg** and
+MA2H is the Multi-agent to Human Protocol — <https://ma2h.org>. `task` shares `ask`'s **response leg** and
 its security contract; only the payload and resolution values differ:
 
 - **`idempotency_key` is REQUIRED** (scope `(agent.id, idempotency_key)`), so a retried submit never
@@ -21,7 +21,7 @@ its security contract; only the payload and resolution values differ:
 
 ## Steps
 
-### 1. Gather the app's AHCP config
+### 1. Gather the app's MA2H config
 Inspect the repo (`AGENTS.md` / `CLAUDE.md` / `.env.example` / config), then ask for what's missing:
 - **App name / slug** → names the skill (e.g. `acme-task`).
 - **Hub base URL** + **agent auth** — the Hub's advertised `bearer`/`apikey` scheme (env var; never hardcode).
@@ -38,8 +38,8 @@ Inspect the repo (`AGENTS.md` / `CLAUDE.md` / `.env.example` / config), then ask
 
 ### 2. Generate the skill
 Write `<skills-dir>/<app>-task/SKILL.md` from the template below. For verification + sealing, prefer a
-helper built on the AHCP reference primitives (`signing.verifyResponse`, `state-seal`) rather than
-re-deriving crypto — see the [reference implementation](https://github.com/autnmy/ahcp-protocol/tree/main/reference).
+helper built on the MA2H reference primitives (`signing.verifyResponse`, `state-seal`) rather than
+re-deriving crypto — see the [reference implementation](https://github.com/autnmy/ma2h-protocol/tree/main/reference).
 
 ### 3. Verify
 Smoke-test the full loop: send a test `task`, mark it **done** in the inbox, confirm the agent receives the
@@ -55,24 +55,24 @@ If other people's agents should also send to this Hub, offer to package the gene
 at `<plugin-root>/skills/<app>-task/SKILL.md` (move it there from `.claude/skills/`, or point the plugin's
 `skills` path at its location), then add `.claude-plugin/plugin.json` and a root
 `.claude-plugin/marketplace.json` listing it (bundle whichever verb skills the app exposes — notify/ask/task).
-Teammates run `/plugin marketplace add <this-repo>` → `/plugin install <app>-ahcp@<marketplace>` and invoke
-it as `/<app>-ahcp:<app>-task` (plugin skills are namespaced `/<plugin>:<skill>`). Validate with `claude plugin validate .`.
+Teammates run `/plugin marketplace add <this-repo>` → `/plugin install <app>-ma2h@<marketplace>` and invoke
+it as `/<app>-ma2h:<app>-task` (plugin skills are namespaced `/<plugin>:<skill>`). Validate with `claude plugin validate .`.
 
 ## Template — the generated `<app>-task` skill
 
 ````markdown
 ---
 name: <app>-task
-description: Ask a human to perform a manual, out-of-band action via <APP>'s AHCP Hub and learn when it's done. Use when an agent needs a human to do something it can't do itself before continuing.
+description: Ask a human to perform a manual, out-of-band action via <APP>'s MA2H Hub and learn when it's done. Use when an agent needs a human to do something it can't do itself before continuing.
 ---
 
-# Ask a human to do a task (AHCP `task`)
+# Ask a human to do a task (MA2H `task`)
 
 ## Send
 - **Endpoint:** `POST <HUB_URL>/v1/messages`  ·  **Auth:** the Hub's advertised scheme (capability `auth_schemes`) — `Authorization: Bearer $<AUTH_ENV>` for `bearer`, or the API-key header for `apikey`
 
 **Envelope** (`type: "task"`):
-- `ahcp_version`: `"0.3"`, `created_at`: ISO now
+- `ma2h_version`: `"0.3"`, `created_at`: ISO now
 - `agent`: `{ "id": "<AGENT_ID>", "run_id": "<RUN_ID>", "runtime": "<RUNTIME>", "project": "<PROJECT>" }`  *(every value is a JSON string — keep the quotes)*
 - `title`, `body` (Markdown), `priority?`, `tags?`
 - **`idempotency_key`** (REQUIRED): stable per logical task.
@@ -105,9 +105,9 @@ Then **MUST**:
 1. **(push only) Verify** the signature: first **recompute `payload_sha256`** yourself as the lowercase-hex
    SHA-256 of the RFC 8785 JCS of the fixed-key object `{ "response": <received `response` or null>,
    "state": <received `state` or null> }` (v0.3, §9.2 — **never trust a transmitted digest**), then
-   reconstruct the canonical `signed_context` (`ahcp_version, callback_url, id, in_reply_to, jti,
+   reconstruct the canonical `signed_context` (`ma2h_version, callback_url, id, in_reply_to, jti,
    payload_sha256, resolution, resolution_id, resolved_at, t`) and verify the detached
-   `AHCP-Signature: t=<unix>,jti=<nonce>,v1=<base64url(sig)>` over its JCS with the Hub's **advertised
+   `MA2H-Signature: t=<unix>,jti=<nonce>,v1=<base64url(sig)>` over its JCS with the Hub's **advertised
    algorithm** (`hmac-sha256` per-agent key, or `ed25519` — see capability `signature_algs`), the `jti`
    nonce, the ±120s window (`t`), and the binding to `id` + `resolution_id` + `callback_url` +
    `payload_sha256`. Reject on any mismatch. **Pull skips this step** — just read the terminal `response`.
@@ -118,7 +118,7 @@ Then **MUST**:
    `response.comment` and/or the final `checklist` state — there is **no `response.value`** (that field is
    reserved for `ask`).
 
-Use the AHCP reference for steps 1 (push) and 3: recompute the digest with
+Use the MA2H reference for steps 1 (push) and 3: recompute the digest with
 `signing.computePayloadSha256(response, state)`, assemble the context with `signing.buildSignedContext(...)`,
 then call `signing.verifyResponse(signed_context, v1, { key })`; open `state` with `state-seal.openState`.
 Note `signing.verifyResponse` implements **`hmac-sha256` only** in the current reference; if the Hub
@@ -127,6 +127,6 @@ platform's ed25519 primitive, **not** that helper (it returns `alg not implement
 ````
 
 ## References
-- Spec: <https://ahcpprotocol.org/spec/v0.3.md> (§5 verbs, §6 response, §7 lifecycle, §9 security)
-- Schemas: <https://ahcpprotocol.org/schema/v0.3/message.schema.json> · <https://ahcpprotocol.org/schema/v0.3/response.schema.json>
-- Reference impl (verify/seal): <https://github.com/autnmy/ahcp-protocol/tree/main/reference>
+- Spec: <https://ma2h.org/spec/v0.3.md> (§5 verbs, §6 response, §7 lifecycle, §9 security)
+- Schemas: <https://ma2h.org/schema/v0.3/message.schema.json> · <https://ma2h.org/schema/v0.3/response.schema.json>
+- Reference impl (verify/seal): <https://github.com/autnmy/ma2h-protocol/tree/main/reference>

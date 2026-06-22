@@ -1,4 +1,4 @@
-# AHCP Conformance Vectors (v0.3)
+# MA2H Conformance Vectors (v0.3)
 
 These vectors let an implementer prove conformance. **Read this first** — it states what the vectors can
 and cannot verify, so green ≠ false confidence (spec §12).
@@ -64,7 +64,7 @@ or load all five schemas into any Draft 2020-12 validator and check each vector'
    (`run_id` does not authorize cross-run access), and the non-submitter sees `404`, not `403`.
 6. **Response-payload integrity** (`dp-003`) — the §9.2 signature binds `payload_sha256`, a digest of the
    response payload. A Response whose `response.value`/`comment`/`actor` or `state` is altered in transit —
-   signed metadata and `AHCP-Signature` header left intact — fails verification, because the agent recomputes
+   signed metadata and `MA2H-Signature` header left intact — fails verification, because the agent recomputes
    the digest from the payload it received (v0.3; issue #7).
 7. **Numeric-payload canonicalization** (`dp-004`) — a `{ response, state }` carrying numbers (integer,
    negative, fraction, `1e-7`, `1e+21`, max-safe int 2^53-1, nested array/object) canonicalizes to the

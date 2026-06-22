@@ -1,20 +1,23 @@
-# Repository Audit — AHCP Rebrand & Documentation Maturation
+# Repository Audit — Protocol Rebrand & Documentation Maturation
 
-**Date:** 2026-06-20 · **Scope:** rename A2H → AHCP and mature the docs, with **zero protocol/semantic
-change** (no version bump). This report enumerates everything that should be **removed, rewritten,
-relocated, renamed, or frozen**, with `file:line` references and a disposition for each.
+**Date:** 2026-06-20 · **Scope (as run):** the original brand rebrand + docs maturation, with **zero
+protocol/semantic change** (no version bump). This report enumerates everything that should be **removed,
+rewritten, relocated, renamed, or frozen**, with `file:line` references and a disposition for each.
 
-Legend: **RENAME** = brand prose → AHCP · **REMOVE** = delete (internal/contradictory) · **RELOCATE** =
-move to a more appropriate doc · **REWRITE** = reshape tone/content · **FREEZE** = must not change ·
-**FLAG** = needs out-of-band action (e.g. binary asset).
+Legend: **RENAME** = brand prose → the new name · **REMOVE** = delete (internal/contradictory) ·
+**RELOCATE** = move to a more appropriate doc · **REWRITE** = reshape tone/content · **FREEZE** = must not
+change · **FLAG** = needs out-of-band action (e.g. binary asset).
 
-> **Superseded by a later full rename (record kept for history).** This audit captures the *naming-only*
-> rebrand, which deliberately **froze** the `a2h` wire/distribution slug (see §4). A subsequent decision —
-> made because the protocol had **no external adopters** — lifted that freeze and flipped the entire `a2h`
-> identity to `ahcp`: the wire identifiers (`a2h_version` → `ahcp_version`, the signature header, etc.),
-> the schema `$id` domain, and the distribution names (npm / CLI / plugin / repo). The conformance vectors
-> were re-signed. The §4 "frozen" table below therefore records the rebrand-time state, **not** the final
-> state. See [MIGRATION.md](../MIGRATION.md) and the `CHANGELOG` "Complete rename" entry for the end state.
+> **Historical artifact — read the lineage first.** This audit was written for the **original** rebrand,
+> **A2H → AHCP**, which deliberately *froze* the `a2h` wire/distribution slug (see §4). Two later decisions,
+> both made because the protocol had **no external adopters**, superseded that: (1) the `a2h` identity was
+> flipped in full to `ahcp` (wire identifiers, schema `$id` domain, distribution names; vectors re-signed),
+> and then (2) the whole protocol was **renamed again to MA2H — Multi-agent to Human Protocol** when `AHCP`
+> was found to collide with an existing protocol. The end state is uniformly **`ma2h`**. Token references in
+> the body below have been mechanically updated to the `ma2h` end-state, but the dated specifics (the §4
+> "frozen" table, the re-mint note, the §7 result) describe the **original** rebrand, not the final one. For
+> the authoritative end-state and the full A2H → AHCP → MA2H identifier map, see
+> [MIGRATION.md](../MIGRATION.md) and the `CHANGELOG`.
 
 ---
 
@@ -61,8 +64,8 @@ pointers only.
 
 ## 3. Brand-rename inventory (RENAME — by surface)
 
-Apply the rename map from `MIGRATION.md`: `A2H` → `AHCP`, `Agent-to-Human Protocol` →
-`Agent Human Coordination Protocol`. Counts are brand-token occurrences (excluding frozen identifiers).
+Apply the rename map from `MIGRATION.md`: `A2H` → `MA2H`, `Agent-to-Human Protocol` →
+`Multi-agent to Human Protocol`. Counts are brand-token occurrences (excluding frozen identifiers).
 
 | Surface | Files | Notes |
 |---------|-------|-------|
@@ -91,24 +94,25 @@ Baseline counts captured 2026-06-20 (repo-wide, incl. docs/plans).
 | `A2H_CALLBACK_SECRET` | env var (§8.3) | 15 |
 | `/.well-known/a2h` | discovery path (§8.0) | 25 |
 | `x-a2h-sensitive` | schema extension field | 22 |
-| `a2hprotocol.org` → `ahcpprotocol.org` | schema `$id` domain + canonical URL (frozen during the rebrand; **re-minted post-rebrand** — see note) | 63 |
+| `a2hprotocol.org` → `ma2h.org` | schema `$id` domain + canonical URL (frozen during the rebrand; **re-minted post-rebrand** — see note) | 63 |
 | `autnmy/a2h-protocol` | GitHub repo slug + URLs | 37 |
 | `@a2h/reference` | npm package | 8 |
 | `a2h-skills` | plugin name + path + namespace | 26 |
 | `a2h` (CLI binary, `~/a2h` prompt) | reference CLI + website demo | n/a |
 
 The website's terminal demo commands (`a2h about`, `a2h verbs`, `a2h docs`, `a2h rules`, `a2h skills`,
-`a2h run-vectors`) mirror the real CLI and are **frozen** — the site is branded AHCP but demonstrates
+`a2h run-vectors`) mirror the real CLI and are **frozen** — the site is branded MA2H but demonstrates
 the `a2h` CLI verbatim. This brand↔CLI split is intentional (see `MIGRATION.md`).
 
-> **Domain re-mint (post-rebrand, approved).** The naming rebrand froze the domain at `a2hprotocol.org`
-> (the row above). As a deliberate, separate follow-up — approved during PR review and permitted because
-> the spec is pre-1.0 Draft — the website **and** the schema `$id` namespace were migrated to
-> `ahcpprotocol.org` (schema `$id`s + reference `BASE` + spec/schema links). Per `CONTRIBUTING.md` this is
-> a breaking `$id` change; it is mitigated by a `301 a2hprotocol.org → ahcpprotocol.org` redirect and
-> verified by the reference suite (56/0). The wire format (`a2h_version`, signature, envelope) is
-> unchanged. The other frozen tokens above (the `a2h` slug in `a2h_version`, the header, the CLI, the
-> npm/plugin names, the repo slug) are **not** affected. See `MIGRATION.md §2` and the `CHANGELOG`.
+> **Domain re-mint (post-rebrand).** The naming rebrand froze the domain at `a2hprotocol.org` (the row
+> above). It was later migrated in two hops — first to `ahcpprotocol.org`, then (with the MA2H rename) to
+> the final **`ma2h.org`** — moving the website, the schema `$id`s, the reference `BASE`, and the
+> spec/schema links together. Per `CONTRIBUTING.md` each is a breaking `$id` change, permitted pre-1.0 with
+> no adopters and verified by the reference suite (56/0). The signature *algorithm* is unchanged, but the
+> full identity flip renamed the wire tokens too (the version field `a2h_version` → … → `ma2h_version`, the
+> header, env var, discovery path, sensitive-field extension, state-seal magic) and the distribution names
+> (npm / CLI / plugin / repo) — so the conformance vectors were re-signed. See `MIGRATION.md` for the full
+> A2H → AHCP → MA2H map and the `CHANGELOG`.
 
 ---
 
@@ -116,7 +120,7 @@ the `a2h` CLI verbatim. This brand↔CLI split is intentional (see `MIGRATION.md
 
 | Asset | Issue | Disposition |
 |-------|-------|-------------|
-| `og.png` | Binary social-card image previously rendered with the "A2H" wordmark. | **REGENERATED.** Replaced (1200×630) with an AHCP card matching the original terminal design — wordmark "AHCP" (H accented), updated title bar/diagram; frozen tokens (`~/a2h`, `a2h about`, `ahcpprotocol.org`) preserved. Rendered from HTML for pixel-accurate text. |
+| `og.png` | Binary social-card image previously rendered with the "A2H" wordmark. | **REGENERATED.** Replaced (1200×630) with an MA2H card matching the original terminal design — wordmark "MA2H" (H accented), updated title bar/diagram; frozen tokens (`~/a2h`, `a2h about`, `ma2h.org`) preserved. Rendered from HTML for pixel-accurate text. |
 | `favicon.svg` | Contains one `A2H` text token. | **RENAME** (text edit, in scope — U4). |
 
 ---
@@ -126,7 +130,7 @@ the `a2h` CLI verbatim. This brand↔CLI split is intentional (see `MIGRATION.md
 | File | Deliverable |
 |------|-------------|
 | `MIGRATION.md` | (6) Migration guide + naming dictionary. |
-| `docs/ahcp-rebrand-audit.md` | (1) This audit report. |
+| `docs/ma2h-rebrand-audit.md` | (1) This audit report. |
 | `docs/documentation-structure.md` | (4) Suggested documentation structure. |
 | `docs/spec-improvement-recommendations.md` | (5) Spec improvement recommendations (advisory). |
 
@@ -145,5 +149,5 @@ The rebrand is correct iff, after all edits:
 > **Result (2026-06-20):** PASS. Frozen-token counts unchanged vs. baseline; reference suite **56 pass /
 > 0 fail**; `schema/` and `conformance/` diffs limited to `title`/`description` strings (vectors
 > untouched); brand grep returns only frozen identifiers (`A2H-Signature`, `A2H_CALLBACK_SECRET`,
-> `.well-known/a2h`, `a2h_version`, `@a2h`, `a2h-skills`, `ahcpprotocol.org`, `autnmy/a2h-protocol`).
-> `og.png` was regenerated (1200×630 AHCP card, rendered from HTML) in response to PR review.
+> `.well-known/a2h`, `a2h_version`, `@a2h`, `a2h-skills`, `ma2h.org`, `autnmy/a2h-protocol`).
+> `og.png` was regenerated (1200×630 MA2H card, rendered from HTML) in response to PR review.

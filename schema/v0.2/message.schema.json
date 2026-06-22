@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ahcpprotocol.org/schema/v0.2/message.schema.json",
-  "title": "AHCP Message (v0.2)",
+  "$id": "https://ma2h.org/schema/v0.2/message.schema.json",
+  "title": "MA2H Message (v0.2)",
   "description": "Agent->Hub message envelope. Discriminated on `type`; cross-type fields are forbidden per branch. `id` is Hub-assigned and is NOT an input.",
   "type": "object",
-  "required": ["ahcp_version", "type", "created_at", "agent", "title"],
+  "required": ["ma2h_version", "type", "created_at", "agent", "title"],
   "properties": {
-    "ahcp_version": { "type": "string", "pattern": "^0\\.\\d+$" },
+    "ma2h_version": { "type": "string", "pattern": "^0\\.\\d+$" },
     "type": { "enum": ["notify", "ask", "task"] },
     "created_at": { "type": "string", "format": "date-time" },
     "agent": { "$ref": "#/$defs/agent" },
@@ -79,7 +79,7 @@
         "options": { "type": "array", "items": { "$ref": "#/$defs/responseOption" } },
         "schema": {
           "type": "object",
-          "description": "Flat JSON Schema for mode=input (string/number/boolean/enum). Properties MAY carry `x-ahcp-sensitive: true`."
+          "description": "Flat JSON Schema for mode=input (string/number/boolean/enum). Properties MAY carry `x-ma2h-sensitive: true`."
         },
         "permissions": {
           "type": "object",

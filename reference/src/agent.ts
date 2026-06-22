@@ -15,9 +15,9 @@ export interface ParsedSignature {
   v1: string;
 }
 
-/** Parse an `AHCP-Signature: t=..,jti=..,v1=..` header. */
+/** Parse an `MA2H-Signature: t=..,jti=..,v1=..` header. */
 export function parseSignatureHeader(header: string): ParsedSignature {
-  const body = header.replace(/^AHCP-Signature:\s*/i, "");
+  const body = header.replace(/^MA2H-Signature:\s*/i, "");
   const parts = new Map<string, string>();
   for (const kv of body.split(",")) {
     const eq = kv.indexOf("=");
@@ -27,7 +27,7 @@ export function parseSignatureHeader(header: string): ParsedSignature {
   const jti = parts.get("jti");
   const v1 = parts.get("v1");
   if (t === undefined || jti === undefined || v1 === undefined) {
-    throw new Error("malformed AHCP-Signature header");
+    throw new Error("malformed MA2H-Signature header");
   }
   return { t, jti, v1 };
 }
@@ -64,7 +64,7 @@ export class Agent {
     }
 
     const sc = buildSignedContext({
-      ahcp_version: response.ahcp_version,
+      ma2h_version: response.ma2h_version,
       callback_url: this.opts.callbackUrl,
       id: response.in_reply_to,
       in_reply_to: response.in_reply_to,

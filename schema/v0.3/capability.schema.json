@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ahcpprotocol.org/schema/v0.3/capability.schema.json",
-  "title": "AHCP Capability Document (v0.3)",
-  "description": "Body of GET /.well-known/ahcp. A Hub responding here is AHCP-conformant. All fields beyond ahcp_version are SHOULD.",
+  "$id": "https://ma2h.org/schema/v0.3/capability.schema.json",
+  "title": "MA2H Capability Document (v0.3)",
+  "description": "Body of GET /.well-known/ma2h. A Hub responding here is MA2H-conformant. All fields beyond ma2h_version are SHOULD.",
   "type": "object",
-  "required": ["ahcp_version"],
+  "required": ["ma2h_version"],
   "properties": {
-    "ahcp_version": { "type": "string", "pattern": "^0\\.\\d+$" },
+    "ma2h_version": { "type": "string", "pattern": "^0\\.\\d+$" },
     "max_body_bytes": { "type": "integer", "minimum": 1 },
     "max_part_bytes": { "type": "integer", "minimum": 1 },
     "max_context_parts": { "type": "integer", "minimum": 0 },

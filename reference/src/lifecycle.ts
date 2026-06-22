@@ -38,7 +38,7 @@ export function applyResolution(record: MessageRecord, input: ResolveInput): Tra
     return { applied: false, record, reason: `already terminal: ${record.status}` };
   }
   const response: A2hResponse = {
-    ahcp_version: record.message.ahcp_version,
+    ma2h_version: record.message.ma2h_version,
     in_reply_to: record.id,
     resolution_id: input.resolution_id,
     agent: { id: record.message.agent.id, run_id: record.message.agent.run_id },

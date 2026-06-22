@@ -4,27 +4,31 @@
 # canonical schema domain — the kind of mistake a well-meaning "consistency cleanup" or a blanket
 # find-replace introduces. Run in CI alongside the conformance tests.
 #
-# The protocol identity is uniformly `ahcp` (it was renamed from `a2h`; see MIGRATION.md). This guard:
-#   1. asserts every JSON Schema `$id` is on the canonical domain (ahcpprotocol.org);
+# The protocol identity is uniformly `ma2h` (renamed from `a2h`, then briefly `ahcp`; see MIGRATION.md).
+# This guard:
+#   1. asserts every JSON Schema `$id` is on the canonical domain (ma2h.org);
 #   2. asserts the reference resolver BASE matches that domain (or $ref resolution silently breaks);
 #   3. asserts the frozen wire identifiers still exist verbatim (a rename breaks interop + vectors);
-#   4. asserts the old `a2h` identity has not crept back onto the wire surface (schemas / reference
-#      src / examples / vectors).
+#   4. asserts neither retired identity (`a2h` or `ahcp`) has crept back onto the wire surface (schemas /
+#      reference src / examples / vectors).
 #
 # Adjust CANON_DOMAIN / the token lists here when an intentional, versioned change lands.
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-CANON_DOMAIN="ahcpprotocol.org"
+CANON_DOMAIN="ma2h.org"
 # The CURRENT (active) normative surface. Scoping here is deliberate: grepping all of spec/ + schema/
 # lets historical v0.1/v0.2 files satisfy a token even after the live v0.3 contract is renamed.
 CURRENT_SPEC="spec/v0.3.md"
 CURRENT_SCHEMA_DIR="schema/v0.3"
 # Wire identifiers that MUST remain present in the current spec + schema (a rename breaks interop).
-FROZEN_WIRE_TOKENS=("ahcp_version" "AHCP-Signature" "AHCP_CALLBACK_SECRET" "x-ahcp-sensitive" ".well-known/ahcp")
-# Retired identity that must never reappear on the wire surface.
-FORBIDDEN_TOKENS=("a2hprotocol.org" "a2h_version" "A2H-Signature" "A2H_CALLBACK_SECRET" "x-a2h-sensitive" "A2HSEALv1" ".well-known/a2h")
+FROZEN_WIRE_TOKENS=("ma2h_version" "MA2H-Signature" "MA2H_CALLBACK_SECRET" "x-ma2h-sensitive" ".well-known/ma2h")
+# Retired identities (a2h, then ahcp) that must never reappear on the wire surface.
+FORBIDDEN_TOKENS=(
+  "a2hprotocol.org" "a2h_version" "A2H-Signature" "A2H_CALLBACK_SECRET" "x-a2h-sensitive" "A2HSEALv1" ".well-known/a2h"
+  "ahcpprotocol.org" "ahcp_version" "AHCP-Signature" "AHCP_CALLBACK_SECRET" "x-ahcp-sensitive" "AHCPSEALv1" ".well-known/ahcp"
+)
 WIRE_PATHS=("schema/" "reference/src/" "examples/" "conformance/vectors/")
 
 fail=0
@@ -52,15 +56,20 @@ for tok in "${FROZEN_WIRE_TOKENS[@]}"; do
 done
 # State-seal magic lives in the reference implementation, not spec/schema. Renaming it silently breaks
 # every sealed resume token, so it is frozen too.
-grep -q "AHCPSEALv1" reference/src/state-seal.ts \
-  || err "state-seal magic 'AHCPSEALv1' missing from reference/src/state-seal.ts — was it renamed?"
+grep -q "MA2HSEALv1" reference/src/state-seal.ts \
+  || err "state-seal magic 'MA2HSEALv1' missing from reference/src/state-seal.ts — was it renamed?"
 
-# 4) The retired `a2h` identity must not reappear on the wire surface.
+# 4) Neither retired identity (`a2h` / `ahcp`) may reappear on the wire surface.
+#    NOTE: `-w` (whole-word) is load-bearing — the live identity `MA2H` literally CONTAINS `A2H`
+#    (e.g. `ma2h_version` ⊃ `a2h_version`, `MA2HSEALv1` ⊃ `A2HSEALv1`). A plain substring grep
+#    would flag every legitimate `ma2h` token. `-w` rejects an `a2h` match preceded by the word char
+#    `m`/`M` (i.e. inside `ma2h`) while still catching a standalone retired token (preceded by `"` / `/`
+#    / whitespace). `-F` keeps the `.` in `a2hprotocol.org` literal rather than a regex wildcard.
 for tok in "${FORBIDDEN_TOKENS[@]}"; do
-  hits=$(grep -rIl -- "$tok" "${WIRE_PATHS[@]}" 2>/dev/null || true)
+  hits=$(grep -rIlwF -- "$tok" "${WIRE_PATHS[@]}" 2>/dev/null || true)
   if [ -n "$hits" ]; then
     echo "$hits" | sed "s/^/  stale '$tok' in: /"
-    err "retired identifier '$tok' found on the wire surface (must be the ahcp equivalent)"
+    err "retired identifier '$tok' found on the wire surface (must be the ma2h equivalent)"
   fi
 done
 
@@ -68,4 +77,4 @@ if [ "$fail" -ne 0 ]; then
   echo "frozen-identifier check FAILED"
   exit 1
 fi
-echo "frozen-identifier check passed (schema \$id on $CANON_DOMAIN; ahcp wire identifiers intact; no a2h on the wire surface)"
+echo "frozen-identifier check passed (schema \$id on $CANON_DOMAIN; ma2h wire identifiers intact; no a2h/ahcp on the wire surface)"

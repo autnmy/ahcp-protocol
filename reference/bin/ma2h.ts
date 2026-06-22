@@ -1,6 +1,6 @@
 #!/usr/bin/env -S node --import tsx
-// AHCP reference CLI — validate / sign / verify / run-vectors.
-// Run: npm run ahcp -- <cmd> ...   or   node --import tsx bin/ahcp.ts <cmd> ...
+// MA2H reference CLI — validate / sign / verify / run-vectors.
+// Run: npm run ma2h -- <cmd> ...   or   node --import tsx bin/ma2h.ts <cmd> ...
 
 import { readFileSync } from "node:fs";
 import {
@@ -45,7 +45,7 @@ function inferKind(doc: unknown): "message" | "response" | "capability" {
 
 function cmdValidate(positionals: string[], flags: Map<string, string>): void {
   const file = positionals[0];
-  if (!file) die("usage: ahcp validate <file> [--as message|response|capability]");
+  if (!file) die("usage: ma2h validate <file> [--as message|response|capability]");
   const doc = JSON.parse(readFileSync(file, "utf8")) as unknown;
   const kind = (flags.get("as") ?? inferKind(doc)) as "message" | "response" | "capability";
   const res: ValidationResult =
@@ -66,7 +66,7 @@ function cmdValidate(positionals: string[], flags: Map<string, string>): void {
 function cmdSign(positionals: string[], flags: Map<string, string>): void {
   const file = positionals[0];
   const key = flags.get("key");
-  if (!file || !key) die("usage: ahcp sign <signed_context.json> --key <key>");
+  if (!file || !key) die("usage: ma2h sign <signed_context.json> --key <key>");
   const sc = JSON.parse(readFileSync(file, "utf8")) as SignedContext;
   if (typeof sc.payload_sha256 !== "string") {
     die("signed_context missing payload_sha256 (required in v0.3; see spec §9.2)");
@@ -78,7 +78,7 @@ function cmdVerify(positionals: string[], flags: Map<string, string>): void {
   const file = positionals[0];
   const key = flags.get("key");
   const v1 = flags.get("v1");
-  if (!file || !key || !v1) die("usage: ahcp verify <signed_context.json> --v1 <sig> --key <key>");
+  if (!file || !key || !v1) die("usage: ma2h verify <signed_context.json> --v1 <sig> --key <key>");
   const sc = JSON.parse(readFileSync(file, "utf8")) as SignedContext;
   if (typeof sc.payload_sha256 !== "string") {
     die("signed_context missing payload_sha256 (required in v0.3; see spec §9.2)");
@@ -104,16 +104,16 @@ function cmdVectors(): void {
 function cmdAbout(): void {
   console.log(
     [
-      "AHCP — Agent Human Coordination Protocol",
+      "MA2H — Multi-agent to Human Protocol",
       "",
       "A vendor-neutral protocol for an agent to reach a human and get a decision",
       "back. The agent↔human complement to A2A and MCP.",
       "",
       "  MCP   →  agent ↔ tools",
       "  A2A   →  agent ↔ agent",
-      "  AHCP  →  agent ↔ human     ← this standard",
+      "  MA2H  →  agent ↔ human     ← this standard",
       "",
-      "verbs: notify · ask · task        https://ahcpprotocol.org",
+      "verbs: notify · ask · task        https://ma2h.org",
     ].join("\n"),
   );
 }
@@ -131,12 +131,12 @@ function cmdVerbs(): void {
 function cmdDocs(): void {
   console.log(
     [
-      "spec         https://ahcpprotocol.org/spec/v0.3.md",
-      "plugin       https://github.com/autnmy/ahcp-protocol/tree/main/plugins/ahcp-skills",
-      "reference    https://github.com/autnmy/ahcp-protocol/tree/main/reference",
-      "schemas      https://ahcpprotocol.org/schema/v0.3/message.schema.json",
-      "conformance  https://github.com/autnmy/ahcp-protocol/tree/main/conformance",
-      "repo         https://github.com/autnmy/ahcp-protocol",
+      "spec         https://ma2h.org/spec/v0.3.md",
+      "plugin       https://github.com/autnmy/ma2h-protocol/tree/main/plugins/ma2h-skills",
+      "reference    https://github.com/autnmy/ma2h-protocol/tree/main/reference",
+      "schemas      https://ma2h.org/schema/v0.3/message.schema.json",
+      "conformance  https://github.com/autnmy/ma2h-protocol/tree/main/conformance",
+      "repo         https://github.com/autnmy/ma2h-protocol",
     ].join("\n"),
   );
 }
@@ -188,16 +188,16 @@ switch (cmd) {
   default:
     console.log(
       [
-        "ahcp — AHCP reference CLI",
+        "ma2h — MA2H reference CLI",
         "",
-        "  ahcp about                 what AHCP is, in one screen",
-        "  ahcp verbs                 the three message verbs",
-        "  ahcp docs                  links to the spec, skill, schemas, repo",
-        "  ahcp rules                 the trust rules that matter",
-        "  ahcp validate <file> [--as message|response|capability]",
-        "  ahcp sign <signed_context.json> --key <key>",
-        "  ahcp verify <signed_context.json> --v1 <sig> --key <key>",
-        "  ahcp run-vectors",
+        "  ma2h about                 what MA2H is, in one screen",
+        "  ma2h verbs                 the three message verbs",
+        "  ma2h docs                  links to the spec, skill, schemas, repo",
+        "  ma2h rules                 the trust rules that matter",
+        "  ma2h validate <file> [--as message|response|capability]",
+        "  ma2h sign <signed_context.json> --key <key>",
+        "  ma2h verify <signed_context.json> --v1 <sig> --key <key>",
+        "  ma2h run-vectors",
       ].join("\n"),
     );
     process.exit(cmd === undefined ? 0 : 1);

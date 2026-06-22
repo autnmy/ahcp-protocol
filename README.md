@@ -1,13 +1,13 @@
-# AHCP — Agent Human Coordination Protocol
+# MA2H — Multi-agent to Human Protocol
 
 > **Status:** Draft · **Version:** 0.3 · **Steward:** Autonomy · **License:** Apache-2.0
 > A vendor- and runtime-neutral protocol that standardizes how autonomous agents coordinate with a human.
 
 ## Overview
 
-**AHCP standardizes how autonomous agents coordinate with humans.** A fleet of agents — running across
+**MA2H standardizes how autonomous agents coordinate with humans.** A fleet of agents — running across
 different runtimes, machines, models, and environments — needs one consistent way to reach a person:
-to inform them, to ask them for a decision, or to hand them a real-world task. AHCP defines that
+to inform them, to ask them for a decision, or to hand them a real-world task. MA2H defines that
 interface as a hub-and-spoke model: heterogeneous agents POST three kinds of message — `notify`, `ask`,
 `task` — to a central **Hub** where humans coordinate from one place, and answers route back to the
 originating (often ephemeral or already-exited) agent via **push** webhook or **pull** polling.
@@ -18,7 +18,7 @@ back to the originating agent — even one that has already exited.
 ```
    agent ┐
    agent ┤
-   agent ┼──▶  [ AHCP hub ]  ──▶  human
+   agent ┼──▶  [ MA2H hub ]  ──▶  human
    agent ┤
    agent ┘
           ◀──  signed answer routed back to the agent
@@ -34,7 +34,7 @@ building blocks address only part of the problem: single-vendor primitives (MCP 
 own boundary. A2A models the *agent* side of a handoff (`input-required`) but explicitly leaves the
 human-hub layer to the application.
 
-AHCP fills that gap: an open, vendor-neutral, runtime-neutral interface for a central human-triage inbox
+MA2H fills that gap: an open, vendor-neutral, runtime-neutral interface for a central human-triage inbox
 across a heterogeneous agent fleet — durable coordination that does not depend on any one model,
 runtime, or implementation.
 
@@ -72,7 +72,7 @@ asks, exits, and a fresh process resumes when the human answers.
 
 ## Non-goals
 
-AHCP is a **coordination protocol**, not:
+MA2H is a **coordination protocol**, not:
 
 - a chatbot or conversational protocol;
 - an approval-workflow product or BPM engine;
@@ -82,7 +82,7 @@ AHCP is a **coordination protocol**, not:
 It does not mandate a transport beyond an HTTP/JSON binding, a storage engine, or a user interface. It
 defines the message contract and the trust rules; implementations choose everything else.
 
-## When to use AHCP
+## When to use MA2H
 
 Agent-coordination protocols solve different problems — choose by the *shape* of the problem, not the
 participants:
@@ -92,17 +92,19 @@ participants:
 - **Agent-to-human *addressing*** (e.g. "A2H"-style proposals) — *discovering and reaching* a specific
   person across messaging channels. The problem is delivery: which human, on which channel, in a format
   they can act on.
-- **AHCP** — the *coordination surface* a whole fleet shares with a human. Many agents converge on one
+- **MA2H** — the *coordination surface* a whole fleet shares with a human. Many agents converge on one
   hub; a human handles notifications, decisions, and tasks from one place; and each signed answer routes
-  back to the originating (often already-exited) agent.
+  back to the originating (often already-exited) agent. (Despite the shared letters, MA2H is **not** the
+  "A2H" above: the *A2H* in *M·A2H* is the agent-to-human primitive; MA2H is the multi-agent coordination
+  hub built on it, not an addressing scheme.)
 
-Reach for AHCP when the problem is **many agents, one human, one durable hub** — not wiring two agents
-together, and not addressing a person. AHCP is the inbox and the decision loop, not the address book or
+Reach for MA2H when the problem is **many agents, one human, one durable hub** — not wiring two agents
+together, and not addressing a person. MA2H is the inbox and the decision loop, not the address book or
 the agent-to-agent wire.
 
 ## Reuse of prior art
 
-AHCP deliberately reuses conventions from established work so adopters are not learning a wholly new
+MA2H deliberately reuses conventions from established work so adopters are not learning a wholly new
 vocabulary:
 
 - **A2A** — message/part schema, `PushNotificationConfig` auth shapes, `contextId` grouping, task-state
@@ -120,7 +122,7 @@ See [`spec/v0.3.md` §11](spec/v0.3.md) for full provenance.
 
 ```
 README.md                          ← you are here
-MIGRATION.md                       ← A2H → AHCP complete rename (brand + wire + distribution)
+MIGRATION.md                       ← the rename to MA2H (A2H → AHCP → MA2H) + identifier map
 CHANGELOG.md                       ← version history and migration notes
 spec/v0.3.md                       ← the normative specification (current draft)
 spec/v0.2.md                       ← superseded draft (kept for history)
@@ -130,28 +132,37 @@ schema/v0.3/
   response.schema.json             ← return leg (Hub → agent)
   submit-ack.schema.json           ← 202 ack body
   get-message.schema.json          ← GET /v1/messages/{id} body
-  capability.schema.json           ← GET /.well-known/ahcp discovery doc
+  capability.schema.json           ← GET /.well-known/ma2h discovery doc
 examples/                          ← concrete envelopes (notify/ask/task + responses + the resume callback)
 conformance/                       ← vector format, the verification classes, starter vectors
-reference/                         ← @ahcp/reference — vendor-neutral TypeScript reference impl + `ahcp` CLI
-plugins/ahcp-skills/                ← installable plugin: implement a Hub + build notify/ask/task skills
+reference/                         ← @ma2h/reference — vendor-neutral TypeScript reference impl + `ma2h` CLI
+plugins/ma2h-skills/                ← installable plugin: implement a Hub + build notify/ask/task skills
 ```
 
 ## Conformance
 
 An implementation is conformant if it satisfies the normative requirements in `spec/v0.3.md` and the
 proof obligations in `conformance/`. The `reference/` TypeScript implementation and the vectors in
-`conformance/vectors/` define the interoperability baseline; the `ahcp` CLI can validate, sign, and
+`conformance/vectors/` define the interoperability baseline; the `ma2h` CLI can validate, sign, and
 verify messages against the schemas.
 
 ## The name
 
-**AHCP — Agent Human Coordination Protocol.** The name says what it is: the coordination layer between
-an agent fleet and the humans who supervise it.
+**MA2H — Multi-agent to Human Protocol**, pronounced as **"mash."** The name works on three layers at once:
+
+- **Topology** — *multi-agent → human*: many agents fan in to one human, the exact hub-and-spoke shape the
+  protocol defines.
+- **The problem** — it names what the protocol exists to solve: coordinating *many* agents with *a* human.
+- **"Mash"** — one syllable, memorable, and apt: the hub *mashes together* — aggregates, reconciles, brings
+  into one place — every agent's `notify`, `ask`, and `task`.
+
+The `A2H` inside *M·A2H* is just "agent-to-human," the underlying primitive; MA2H is the **multi-agent
+coordination layer** over it. It is unrelated to any similarly-named "A2H" addressing proposal — see
+[when to use MA2H](#when-to-use-ma2h).
 
 ## Stewardship & governance
 
-AHCP is stewarded by **Autonomy** and licensed [Apache-2.0](LICENSE). It is structured as a neutral,
+MA2H is stewarded by **Autonomy** and licensed [Apache-2.0](LICENSE). It is structured as a neutral,
 donate-able standard rather than a single-vendor artifact, so that implementers can adopt it without
 patent risk. Governance, the protocol-vs-product boundary, and the stated intent to transfer the
 standard to a vendor-neutral foundation are documented in [GOVERNANCE.md](GOVERNANCE.md). Contribution

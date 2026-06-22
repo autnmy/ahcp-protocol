@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ahcpprotocol.org/schema/v0.1/message.schema.json",
-  "title": "AHCP Message (v0.1)",
-  "description": "Envelope for an Agent Human Coordination Protocol message. Discriminated on `type`.",
+  "$id": "https://ma2h.org/schema/v0.1/message.schema.json",
+  "title": "MA2H Message (v0.1)",
+  "description": "Envelope for an Multi-agent to Human Protocol message. Discriminated on `type`.",
   "type": "object",
-  "required": ["ahcp_version", "id", "type", "created_at", "agent", "title"],
+  "required": ["ma2h_version", "id", "type", "created_at", "agent", "title"],
   "properties": {
-    "ahcp_version": { "const": "0.1" },
+    "ma2h_version": { "const": "0.1" },
     "id": { "type": "string", "minLength": 1 },
     "type": { "enum": ["notify", "ask", "task"] },
     "created_at": { "type": "string", "format": "date-time" },

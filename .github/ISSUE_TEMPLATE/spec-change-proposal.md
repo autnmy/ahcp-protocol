@@ -1,6 +1,6 @@
 ---
 name: Spec Change Proposal (SCP)
-about: Propose a breaking change, new feature, or governance change to the AHCP protocol
+about: Propose a breaking change, new feature, or governance change to the MA2H protocol
 title: "SCP: <short title>"
 labels: ["scp", "needs-sponsor"]
 ---

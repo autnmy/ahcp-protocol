@@ -1,4 +1,4 @@
-// AHCP detached Response signature — spec §9.2.
+// MA2H detached Response signature — spec §9.2.
 //
 // The Hub signs a canonical `signed_context` (NOT the raw HTTP body) so the
 // signature is bound to id + resolution_id + callback_url and cannot be replayed
@@ -12,7 +12,7 @@ export type SignatureAlg = "hmac-sha256" | "ed25519";
 
 /** Fields bound by the signature, in spec order (canonicalize sorts them anyway). */
 export const SIGNED_FIELDS = [
-  "ahcp_version",
+  "ma2h_version",
   "callback_url",
   "id",
   "in_reply_to",
@@ -25,7 +25,7 @@ export const SIGNED_FIELDS = [
 ] as const satisfies ReadonlyArray<keyof SignedContext>;
 
 export interface SignedContextParts {
-  ahcp_version: SignedContext["ahcp_version"];
+  ma2h_version: SignedContext["ma2h_version"];
   callback_url: string;
   id: string;
   in_reply_to: string;
@@ -42,7 +42,7 @@ export interface SignedContextParts {
 /** Assemble the canonical signed_context from its parts. */
 export function buildSignedContext(parts: SignedContextParts): SignedContext {
   return {
-    ahcp_version: parts.ahcp_version,
+    ma2h_version: parts.ma2h_version,
     callback_url: parts.callback_url,
     id: parts.id,
     in_reply_to: parts.in_reply_to,
@@ -92,7 +92,7 @@ export function signResponse(sc: SignedContext, opts: SignOptions): SignResult {
   if (!opts.key) throw new Error("signing key required");
   const canonical = canonicalize(sc);
   const v1 = createHmac("sha256", opts.key).update(canonical).digest("base64url");
-  return { canonical, v1, header: `AHCP-Signature: t=${sc.t},jti=${sc.jti},v1=${v1}` };
+  return { canonical, v1, header: `MA2H-Signature: t=${sc.t},jti=${sc.jti},v1=${v1}` };
 }
 
 export type VerifyResult = { ok: true } | { ok: false; reason: string };

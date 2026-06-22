@@ -1,30 +1,37 @@
 # Changelog
 
-All notable changes to the AHCP (Agent Human Coordination Protocol) specification.
+All notable changes to the MA2H (Multi-agent to Human Protocol) specification.
 
 ## Unreleased
 
 ### Changed (breaking, pre-1.0)
-- **Complete rename: A2H → AHCP.** With no external adopters yet, the protocol was renamed in full — its
-  name, every wire identifier (message version field, signature header, callback-secret env convention,
-  discovery path, sensitive-field schema extension, state-seal magic), all schema `$id`s, the
-  `ahcpprotocol.org` domain, and the distribution names (npm package, CLI binary, plugin/marketplace,
-  GitHub repo) — in a single clean cut, with no compatibility layer kept. **Protocol semantics are
-  unchanged** — same three verbs, message envelope, lifecycle, and RFC 8785 JCS + HMAC/ed25519 signature
-  *algorithm*. The conformance vectors were re-signed because the version field is one of the bytes inside
-  the canonical `signed_context`. Verified by the reference suite (56/0). See [MIGRATION.md](MIGRATION.md)
-  for the full before/after identifier table.
+- **Renamed to MA2H — Multi-agent to Human Protocol ("Mash").** The lineage is **A2H → AHCP → MA2H**: the
+  intermediate name (AHCP) collided with an existing protocol, so — still with no external adopters — the
+  protocol was renamed again, in full, in a single clean cut. The rename moves the name, every wire
+  identifier (message version field, signature header, callback-secret env convention, discovery path,
+  sensitive-field schema extension, state-seal magic), all schema `$id`s, the `ma2h.org` domain,
+  and the distribution names (npm package, CLI binary, plugin/marketplace, GitHub repo). No compatibility
+  layer is kept — `a2h` and `ahcp` are gone from the wire surface. **Protocol semantics are unchanged** —
+  same three verbs, message envelope, lifecycle, and RFC 8785 JCS + HMAC/ed25519 signature *algorithm*. The
+  conformance vectors were re-signed because the version field (`ma2h_version`) is one of the bytes inside
+  the canonical `signed_context` (and renaming it re-sorts its position in the JCS key order). Verified by
+  the reference suite (56/0). See [MIGRATION.md](MIGRATION.md) for the full before/after identifier table.
+- **Frozen-identifier guard now whole-word matches the retired tokens.** Because the live identity `MA2H`
+  literally contains `A2H` (e.g. `ma2h_version` ⊃ `a2h_version`, `MA2HSEALv1` ⊃ `A2HSEALv1`),
+  `scripts/check-frozen-identifiers.sh` uses `grep -wF` for the forbidden list — it rejects a standalone
+  retired token while ignoring the `a2h` that legitimately lives inside `ma2h`. The forbidden list now
+  covers both retired identities (`a2h` and `ahcp`).
 
 ### Changed
-- **`ahcp-skills` plugin templates migrated to v0.3.** The `implement` / `build-notify` / `build-ask` /
-  `build-task` skills now target `ahcp_version: "0.3"`, link the v0.3 spec/schema, and the push
+- **`ma2h-skills` plugin templates migrated to v0.3.** The `implement` / `build-notify` / `build-ask` /
+  `build-task` skills now target `ma2h_version: "0.3"`, link the v0.3 spec/schema, and the push
   verification guidance recomputes `payload_sha256` and reconstructs the v0.3 §9.2 `signed_context`
-  (payload-bound signature). Previously the templates emitted `ahcp_version: "0.2"`, so following them
+  (payload-bound signature). Previously the templates emitted `ma2h_version: "0.2"`, so following them
   with a **push** callback against a current v0.3 Hub broke (the Hub rejects pre-0.3 push with
   `version_not_supported`, §10). Generated sender skills now interoperate with a current Hub on push.
 
 ### Added
-- **Reference Hub version negotiation (§10).** The reference Hub now rejects a message whose `ahcp_version`
+- **Reference Hub version negotiation (§10).** The reference Hub now rejects a message whose `ma2h_version`
   **major** it doesn't recognize with `version_not_supported`, and rejects a **pre-0.3 push** request (its
   pushed Response is signed with the v0.3 payload-bound signature, which a pre-0.3 agent cannot verify) —
   **pull stays compatible** (§8.2, pull responses aren't signature-verified). Spec §10 gains the
@@ -107,7 +114,7 @@ found in the v0.1 design review. v0.1 was an unadopted draft, so this is the rig
   dedup, at-most-once delivery.
 - **Reliability** — durability as a conformance MUST (including `delivered` notifies), pull-available
   retention (default 30 days), 410 vs 404, mandated receiver dedup.
-- **Error model** (§8.5), **rate/quota/size limits** (§8.6), **discovery endpoint** `GET /.well-known/ahcp`
+- **Error model** (§8.5), **rate/quota/size limits** (§8.6), **discovery endpoint** `GET /.well-known/ma2h`
   (§8.0) + `capability.schema.json`, **submit-ack** and **get-message** schemas.
 - **Ephemeral agent resume pattern** (§2.1) — the exit→reinvoke→reconstruct flow is now normative.
 - **Conformance vectors** with three explicit verification classes (schema-validation / prose-audit /
