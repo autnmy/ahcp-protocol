@@ -95,8 +95,8 @@ participants:
 - **MA2H** — the *coordination surface* a whole fleet shares with a human. Many agents converge on one
   hub; a human handles notifications, decisions, and tasks from one place; and each signed answer routes
   back to the originating (often already-exited) agent. (Despite the shared letters, MA2H is **not** the
-  "A2H" above: the *A2H* in *M·A2H* is the agent-to-human primitive; MA2H is the multi-agent coordination
-  hub built on it, not an addressing scheme.)
+  "A2H" above: the `A2H` in *MA2H* just spells the *agent → human* direction — `2` is leetspeak "to" — and
+  implies no dependency on, or implementation of, that addressing protocol.)
 
 Reach for MA2H when the problem is **many agents, one human, one durable hub** — not wiring two agents
 together, and not addressing a person. MA2H is the inbox and the decision loop, not the address book or
@@ -156,8 +156,8 @@ verify messages against the schemas.
 - **"Mash"** — one syllable, memorable, and apt: the hub *mashes together* — aggregates, reconciles, brings
   into one place — every agent's `notify`, `ask`, and `task`.
 
-The `A2H` inside *M·A2H* is just "agent-to-human," the underlying primitive; MA2H is the **multi-agent
-coordination layer** over it. It is unrelated to any similarly-named "A2H" addressing proposal — see
+The `A2H` inside *MA2H* just spells the *agent → human* direction (`2` is leetspeak "to") — it is **not** a
+reference to, or a dependency on, any similarly-named "A2H" addressing protocol. See
 [when to use MA2H](#when-to-use-ma2h).
 
 ## Stewardship & governance
