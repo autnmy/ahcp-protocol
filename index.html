@@ -418,8 +418,12 @@ agent ┘
   }
   function startInteractive(){
     removeCue();
-    screen.appendChild(el('tl', '<span class="faint"># your turn — try: ma2h rules · ma2h docs · npm run demo · help</span>'));
-    addPrompt(40);
+    // The cue belongs to the prompt below it, not the block above: push it clear of the last
+    // output, then let the prompt sit snug beneath it so the two read as one group.
+    var hint = el('tl', '<span class="faint"># your turn — try: ma2h rules · ma2h docs · npm run demo · help</span>');
+    hint.style.marginTop = '40px';
+    screen.appendChild(hint);
+    addPrompt(6);
   }
   document.getElementById('win').addEventListener('click', function(e){
     if(e.target.closest('a')) return;
