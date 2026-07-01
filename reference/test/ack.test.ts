@@ -74,11 +74,24 @@ test("ack requires a terminal message: acking an open ask is refused (§14.3)", 
   );
 });
 
+test("ack is refused before the response is delivered to the agent (§14.2)", () => {
+  const now = { t: T0 };
+  const hub = newHub(now);
+  const { id } = hub.submit(ask());
+  hub.resolve(id, { actor: "human:you", resolution: "answered", value: "ship" });
+  // Terminal, but the agent has not fetched it (no push/GET) → not yet delivered-to-agent.
+  assert.throws(
+    () => hub.ackMessage(id, AGENT),
+    (e: unknown) => e instanceof HubError && e.code === "not_acknowledgeable",
+  );
+});
+
 test("first-ack-wins: a repeat ack returns the existing ack (§14.1)", () => {
   const now = { t: T0 };
   const hub = newHub(now);
   const { id } = hub.submit(ask());
   hub.resolve(id, { actor: "human:you", resolution: "answered", value: "ship" });
+  hub.get(id, AGENT); // agent receives the answer → delivered-to-agent
   const first = hub.ackMessage(id, AGENT, { note: "first" });
   now.t += 5000;
   const second = hub.ackMessage(id, AGENT, { note: "second" });
@@ -112,15 +125,55 @@ test("directive receipt persists after the mailbox record is compacted (§14.2)"
   const now = { t: T0 };
   const hub = newHub(now);
   const { id } = hub.sendDirective({ from: "human:alice", to: `agent:${AGENT}` as DirectiveTo, title: "hold" });
-  assert.equal(hub.getDirectiveDelivery(id)?.state, "queued");
+  assert.equal(hub.getDelivery(id)?.state, "queued");
   hub.drainInbox(AGENT);
-  assert.equal(hub.getDirectiveDelivery(id)?.state, "delivered");
+  assert.equal(hub.getDelivery(id)?.state, "delivered");
   hub.ackInbox(AGENT, [id], { note: "on it" });
   // The mailbox record is gone, but the human-facing receipt survives.
-  const d = hub.getDirectiveDelivery(id);
+  const d = hub.getDelivery(id);
   assert.equal(d?.state, "acknowledged");
   assert.equal(d?.ack?.note, "on it");
   assert.equal(hub.drainInbox(AGENT).length, 0, "the acked directive is not redelivered");
+});
+
+test("directive ack is idempotent: a re-ack returns the existing receipt from deliveries (§14.1)", () => {
+  const now = { t: T0 };
+  const hub = newHub(now);
+  const { id } = hub.sendDirective({ from: "human:alice", to: `agent:${AGENT}` as DirectiveTo, title: "hold" });
+  hub.drainInbox(AGENT);
+  const first = hub.ackInbox(AGENT, [id], { note: "on it" });
+  assert.equal(first.acked, 1);
+  // The record is compacted; a retry recovers the same immutable ack (not an empty result).
+  const retry = hub.ackInbox(AGENT, [id]);
+  assert.equal(retry.acked, 0, "nothing newly acked");
+  assert.deepEqual(retry.acks, [first.acks[0]], "the existing receipt is returned");
+});
+
+test("acking an un-drained (queued) directive is a no-op — no fabricated receipt (§14.2)", () => {
+  const now = { t: T0 };
+  const hub = newHub(now);
+  const { id } = hub.sendDirective({ from: "human:alice", to: `agent:${AGENT}` as DirectiveTo, title: "hold" });
+  // Skip the drain and try to ack directly.
+  const res = hub.ackInbox(AGENT, [id], { note: "sneaky" });
+  assert.equal(res.acked, 0);
+  assert.equal(res.acks.length, 0);
+  assert.equal(hub.getDelivery(id)?.state, "queued", "still only queued — no acknowledged receipt");
+  assert.equal(hub.drainInbox(AGENT).length, 1, "and it is still deliverable");
+});
+
+test("an expired directive's receipt advances to `expired`, not a stuck `queued` (§13.3/§14.2)", () => {
+  const now = { t: T0 };
+  const hub = newHub(now);
+  const { id } = hub.sendDirective({
+    from: "human:alice",
+    to: `agent:${AGENT}` as DirectiveTo,
+    title: "stale",
+    expires_at: new Date(T0 + 1_000).toISOString(),
+  });
+  assert.equal(hub.getDelivery(id)?.state, "queued");
+  now.t = T0 + 5_000; // past expiry
+  hub.drainInbox(AGENT); // the drain sweeps the expired record
+  assert.equal(hub.getDelivery(id)?.state, "expired");
 });
 
 test("pushed-ack signature (§14.4) verifies; a tampered note fails", () => {
@@ -128,6 +181,7 @@ test("pushed-ack signature (§14.4) verifies; a tampered note fails", () => {
   const hub = newHub(now);
   const { id } = hub.submit(ask());
   hub.resolve(id, { actor: "human:you", resolution: "answered", value: "ship" });
+  hub.get(id, AGENT); // delivered-to-agent
   const ack = hub.ackMessage(id, AGENT, { note: "resuming" });
 
   const header = hub.signAckForPush(ack, now.t);

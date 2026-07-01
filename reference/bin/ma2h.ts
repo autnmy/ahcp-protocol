@@ -46,7 +46,8 @@ function inferKind(doc: unknown): ValidateKind {
     if ("state" in o && "agent_id" in o) return "presence";
     if (typeof o["type"] === "string" && ["notify", "ask", "task"].includes(o["type"])) return "message";
     if ("in_reply_to" in o && "resolution" in o) return "response";
-    if ("callback_auth_schemes" in o || "max_body_bytes" in o || "auth_schemes" in o) return "capability";
+    if ("callback_auth_schemes" in o || "max_body_bytes" in o || "auth_schemes" in o || "inbound" in o || "ack" in o || "presence" in o)
+      return "capability";
   }
   return "message";
 }

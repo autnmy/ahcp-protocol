@@ -27,7 +27,11 @@
           "$ref": "https://ma2h.org/schema/v0.4/ack.schema.json",
           "description": "The ack envelope, present once state is `acknowledged`."
         }
-      }
+      },
+      "allOf": [
+        { "if": { "properties": { "state": { "const": "acknowledged" } }, "required": ["state"] }, "then": { "required": ["ack", "acknowledged_at"] } },
+        { "if": { "properties": { "state": { "const": "delivered-to-agent" } }, "required": ["state"] }, "then": { "not": { "required": ["ack"] } } }
+      ]
     }
   }
 }

@@ -442,6 +442,12 @@ export class Hub {
     }
     const existing = this.deliveries.get(id);
     if (existing?.state === "acknowledged" && existing.ack) return existing.ack; // first-ack-wins, idempotent
+    // §14.2: the agent can only acknowledge an answer it actually RECEIVED — the receipt must be
+    // `delivered-to-agent` (a push 2xx or the agent's authenticated GET) before it can advance to
+    // `acknowledged`. This stops a client polling /ack to fake a receipt without ever fetching the answer.
+    if (existing?.state !== "delivered-to-agent") {
+      throw new HubError("not_acknowledgeable", "the response must be delivered to the agent before it can be acknowledged (§14.2)");
+    }
     const t = opts?.now ?? this.now();
     // The Hub attests the ack, so it stamps the AUTHORITATIVE resolution_id (the message's one terminal
     // resolution) — never a client-supplied value, which a buggy/malicious agent could use to make the
@@ -449,7 +455,7 @@ export class Hub {
     const ack = this.buildAck(id, principal, t, opts?.note, record.resolution_id ?? undefined);
     this.deliveries.set(id, {
       state: "acknowledged",
-      ...(existing?.delivered_at ? { delivered_at: existing.delivered_at } : { delivered_at: ack.acked_at }),
+      ...(existing.delivered_at !== undefined ? { delivered_at: existing.delivered_at } : {}),
       acknowledged_at: ack.acked_at,
       ack,
     });
@@ -607,21 +613,33 @@ export class Hub {
     const wanted = new Set(ids);
     let acked = 0;
     const acks: Ack[] = [];
+    const done = new Set<string>();
     for (const rec of box) {
-      if (!rec.acked && wanted.has(rec.directive.id)) {
+      // Only a DELIVERED (drained/in-flight) directive can be acknowledged — a still-`queued` id that was
+      // never drained is a no-op, so a client can't skip the drain and fabricate a receipt (§14.2).
+      if (!rec.acked && wanted.has(rec.directive.id) && rec.deliveredAtMs !== undefined) {
         rec.acked = true;
         rec.ack = this.buildAck(rec.directive.id, principal, t, opts?.note);
         // Persist the receipt BEFORE the record is compacted out below — else the human-facing ack is
         // lost the moment ackInbox returns and no status view could show the directive was acknowledged.
         this.deliveries.set(rec.directive.id, {
           state: "acknowledged",
-          ...(rec.deliveredAtMs !== undefined ? { delivered_at: new Date(rec.deliveredAtMs).toISOString() } : {}),
+          delivered_at: new Date(rec.deliveredAtMs).toISOString(),
           acknowledged_at: rec.ack.acked_at,
           ack: rec.ack,
         });
         acks.push(rec.ack);
+        done.add(rec.directive.id);
         acked++;
       }
+    }
+    // Idempotent retry (§14.1): the mailbox record is compacted after the first ack, so a re-ack of the
+    // same id returns the existing immutable receipt from `deliveries` — bound to THIS principal via the
+    // ack's `by`, so a foreign caller can't fetch another agent's receipt.
+    for (const id of wanted) {
+      if (done.has(id)) continue;
+      const d = this.deliveries.get(id);
+      if (d?.state === "acknowledged" && d.ack?.by === `agent:${principal}`) acks.push(d.ack);
     }
     // Compact acked records out of the mailbox (the receipt lives on in `deliveries`).
     this.mailboxes.set(
@@ -631,9 +649,12 @@ export class Hub {
     return { acked, acks };
   }
 
-  /** Read a directive's receipt track (spec §14.2), by directive id. Owner-only in production (§13/§15.3). */
-  getDirectiveDelivery(directiveId: string): Delivery | undefined {
-    return this.deliveries.get(directiveId);
+  /**
+   * Read a message/directive receipt track (spec §14.2), by id — the human's authenticated pull path for a
+   * pulled ack (distinct from the submitter-bound message GET). Owner-only in production (§14.4 / §15.3).
+   */
+  getDelivery(id: string): Delivery | undefined {
+    return this.deliveries.get(id);
   }
 
   /** Detached §9.7 signature for one directive delivery (fresh `t`/`jti`). */
@@ -655,6 +676,9 @@ export class Hub {
     if (rec.directive.expires_at === undefined) return false;
     if (nowMs <= Date.parse(rec.directive.expires_at)) return false;
     rec.acked = true; // dropped: never delivered again (no Response — §13.3)
+    // Advance the receipt track to a terminal `expired` so `getDelivery` stops reporting `queued` forever
+    // for a directive the Hub has dropped (§13.3 / §14.2).
+    this.deliveries.set(rec.directive.id, { state: "expired" });
     return true;
   }
 }

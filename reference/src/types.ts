@@ -236,8 +236,12 @@ export interface AckSignedContext {
   t: string;
 }
 
-/** The additive receipt track surfaced on the GET body (spec §14.2), orthogonal to `resolution`. */
-export type DeliveryState = "queued" | "delivered" | "delivered-to-agent" | "acknowledged";
+/**
+ * The additive receipt track surfaced on the GET body (spec §14.2), orthogonal to `resolution`.
+ * `queued`/`delivered`/`expired` are directive-only (mailbox, §13); `delivered-to-agent`/`acknowledged`
+ * are the response-leg states (§6); `acknowledged` is shared.
+ */
+export type DeliveryState = "queued" | "delivered" | "expired" | "delivered-to-agent" | "acknowledged";
 export interface Delivery {
   state: DeliveryState;
   delivered_at?: string;
