@@ -47,14 +47,20 @@ mailbox for hours still arrives inside the agent's replay window; only `t`/`jti`
 ## 5. What the agent does on receipt
 
 1. Parse the `MA2H-Signature` header (`t`, `jti`, `v1`).
-2. **Recompute** `payload_sha256` from the directive it actually received, and re-read the bound `from`,
+2. **Validate** the directive against `inbound-message.schema.json` (rejecting a forbidden
+   `request`/`action`/`state` an injector could add — those aren't in `payload_sha256`).
+3. **Recompute** `payload_sha256` from the directive it actually received, and re-read the bound `from`,
    `id`, and `to` from that directive — never trust a transmitted digest.
-3. Rebuild the canonical `inbound_signed_context` and verify `v1` (HMAC-SHA256), rejecting a `t` outside the
+4. Rebuild the canonical `inbound_signed_context` and verify `v1` (HMAC-SHA256), rejecting a `t` outside the
    replay window and any replayed `jti`.
-4. **Deduplicate** on the directive `id` and act at most once (at-least-once delivery can present the same
+5. **Confirm the addressee** — check `to` is your own `agent:<id>` and refuse otherwise (§13.4). The
+   signature binds `to`, so a *tampered* `to` fails verification, but a directive **validly** signed for
+   another agent still verifies; only this own-identity check stops it being acted on here.
+6. **Deduplicate** on the directive `id` and act at most once (at-least-once delivery can present the same
    `id` again), then `POST /v1/inbox/ack` to consume it.
 
-Because the agent recomputes the digest and re-reads `from`/`to` from the received directive, a proxy that
-alters the instruction `body`, spoofs `from`, or redirects `to` another agent produces a different canonical
-string and therefore a signature mismatch — a directive signed for `agent:deploybot/dev-team` cannot be
-replayed into `agent:victim/other-bot`'s mailbox.
+Two distinct defenses stop cross-agent replay. A proxy that *alters* the instruction `body`, spoofs `from`,
+or **redirects** `to` produces a different canonical string and fails verification (step 4). But a directive
+**genuinely** signed for `agent:deploybot/dev-team` and re-routed *unmodified* to `agent:victim/other-bot`'s
+webhook still verifies — so the recipient's addressee check (step 5) is what refuses it, because
+`to` != its own identity.

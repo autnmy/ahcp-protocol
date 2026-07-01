@@ -89,6 +89,8 @@ export interface SendDirectiveInput {
   tags?: string[];
   context?: Part[];
   expires_at?: string;
+  /** Message-level sensitivity — excludes the directive's value(s) from Hub export/telemetry (§9.6). */
+  sensitive?: boolean;
 }
 
 /** A directive resting in a mailbox (spec §8.7, §13). */
@@ -391,6 +393,7 @@ export class Hub {
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
       ...(input.context !== undefined ? { context: input.context } : {}),
       ...(input.expires_at !== undefined ? { expires_at: input.expires_at } : {}),
+      ...(input.sensitive !== undefined ? { sensitive: input.sensitive } : {}),
     };
     const v = validateInboundMessage(directive);
     if (!v.valid) throw new HubError("validation_error", `invalid directive: ${v.errors.join("; ")}`);
@@ -437,6 +440,10 @@ export class Hub {
       // boundary) MUST NOT corrupt what a later redelivery re-signs over.
       out.push({ directive: structuredClone(rec.directive), signature: this.signDirective(rec.directive, t) });
     }
+    // Compact acked records out — including ones `expireDirective` just dropped (§13.3). Otherwise an
+    // expired-but-never-acked directive would linger and be re-scanned on every drain, since the ack
+    // that would normally remove it never comes for a directive that simply expired.
+    if (box.some((r) => r.acked)) this.mailboxes.set(principal, box.filter((r) => !r.acked));
     return out;
   }
 

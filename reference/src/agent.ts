@@ -69,21 +69,51 @@ export interface AgentOptions {
 export type DirectiveResult =
   | {
       acted: true;
+      /** The directive, projected to its known schema fields — any unsigned unknown field is stripped. */
       directive: InboundDirective;
       /**
-       * Record this directive's `id` in the dedup cache (spec §13.4). The caller MUST invoke it only
-       * AFTER it has durably processed the directive (verify -> act -> `commit()` -> ack), so a crash
-       * mid-processing leaves the directive un-acked and safely redeliverable rather than suppressed as
-       * a duplicate. The `jti` signature-replay guard is committed inside `receiveDirective` regardless.
+       * Finalize dedup (spec §13.4). On accept the `id` is **reserved** (in-flight) so a concurrent
+       * overlapping delivery — webhook + poll, or a redelivery past the visibility timeout — is deduped
+       * before either completes. The caller invokes `commit()` only AFTER it has durably processed the
+       * directive (verify -> act -> `commit()` -> ack), promoting the reservation to a permanent dedup.
        */
       commit: () => void;
+      /**
+       * Abandon the in-flight reservation so a later redelivery may retry (spec §13.4) — for a caller
+       * that failed to process but is still alive. On a crash the in-memory reservation is simply lost,
+       * so a redelivery to a fresh process retries (at-least-once); an idempotent side effect or a
+       * persisted dedup set gives at-most-once across a restart.
+       */
+      release: () => void;
     }
   | { acted: false; reason: string };
 
+/** Project a directive to its known schema fields, dropping any unsigned unknown property (§10, §13.4). */
+function sanitizeDirective(d: InboundDirective): InboundDirective {
+  const out: InboundDirective = {
+    ma2h_version: d.ma2h_version,
+    type: "directive",
+    id: d.id,
+    from: d.from,
+    to: d.to,
+    created_at: d.created_at,
+    title: d.title,
+  };
+  if (d.body !== undefined) out.body = d.body;
+  if (d.priority !== undefined) out.priority = d.priority;
+  if (d.tags !== undefined) out.tags = d.tags;
+  if (d.context !== undefined) out.context = d.context;
+  if (d.expires_at !== undefined) out.expires_at = d.expires_at;
+  if (d.sensitive !== undefined) out.sensitive = d.sensitive;
+  return out;
+}
+
 export class Agent {
   private readonly seen = new Set<string>();
-  /** At-most-once cache of directive ids already acted on (spec §13.4). */
+  /** At-most-once cache of directive ids the caller has COMMITTED (durably processed) — spec §13.4. */
   private readonly seenDirectives = new Set<string>();
+  /** Directive ids currently RESERVED (accepted, not yet committed/released) — the in-flight guard. */
+  private readonly inFlightDirectives = new Set<string>();
   /**
    * Replay cache of directive signature `jti`s already seen (spec §9.7). Rejects an exact-bytes
    * signature replay independently of the `id` business-dedup. In-process and unbounded here (the
@@ -162,6 +192,13 @@ export class Agent {
       return { acted: false, reason: "agent identity (agentId) not configured — cannot verify the directive addressee (§13.4)" };
     }
 
+    // Validate SHAPE first (before any hashing): a malformed wire object (e.g. missing `title`) would
+    // otherwise reach computeDirectivePayloadSha256 and throw in the JCS canonicalizer instead of a clean
+    // refusal. The schema also forbids `request`/`action`/`state` — `payload_sha256` binds only the
+    // content fields, so an on-path injector can add cross-type data without breaking the signature.
+    const shape = validateInboundMessage(directive);
+    if (!shape.valid) return { acted: false, reason: `invalid directive: ${shape.errors.join("; ")}` };
+
     let sig: ParsedSignature;
     try {
       sig = parseSignatureHeader(signatureHeader);
@@ -186,13 +223,6 @@ export class Agent {
     });
     if (!verified.ok) return { acted: false, reason: `signature: ${verified.reason}` };
 
-    // Untrusted-until-verified extends to SHAPE: `payload_sha256` binds only the content fields, so an
-    // on-path injector (or a buggy Hub) can append a forbidden `request`/`action`/`state` field without
-    // breaking the signature. Validate the received directive against the schema (§13.1 forbids those)
-    // and refuse cross-type data rather than passing it downstream.
-    const shape = validateInboundMessage(directive);
-    if (!shape.valid) return { acted: false, reason: `invalid directive: ${shape.errors.join("; ")}` };
-
     // §13.4: confirm this directive is addressed to THIS agent. The signature binds `to`, so a valid
     // signature proves the Hub intended a specific addressee — but only the recipient checking
     // `to === self` stops a directive validly signed for agent:X from being acted on by agent:Y (the
@@ -205,16 +235,28 @@ export class Agent {
     if (this.seenDirectiveJti.has(sig.jti)) {
       return { acted: false, reason: "replay: jti already seen" };
     }
-    // Redelivery (fresh jti, same id — §8.7 at-least-once) is caught here by the id-dedup, but ONLY
-    // once the caller has committed a prior successful processing (see `commit` below).
+    // id dedup — committed (already processed) beats in-flight (a concurrent/overlapping delivery).
     if (this.seenDirectives.has(directive.id)) {
       return { acted: false, reason: "duplicate delivery (already acted)" };
     }
-    // Commit the jti now — the same signed bytes must never be re-accepted. Defer the `id` dedup to the
-    // returned `commit()`, which the caller invokes AFTER durable processing (§13.4), so a crash before
-    // processing completes leaves the directive un-acked and redeliverable rather than suppressed.
+    if (this.inFlightDirectives.has(directive.id)) {
+      return { acted: false, reason: "duplicate delivery (in flight)" };
+    }
+
+    // Commit the jti now — the same signed bytes must never be re-accepted. RESERVE the id in-flight so
+    // a concurrent same-id delivery is deduped before either completes; the caller promotes it to a
+    // permanent dedup via commit() after durable processing, or release()s it to allow a retry (§13.4).
     this.seenDirectiveJti.add(sig.jti);
     const id = directive.id;
-    return { acted: true, directive, commit: () => this.seenDirectives.add(id) };
+    this.inFlightDirectives.add(id);
+    return {
+      acted: true,
+      directive: sanitizeDirective(directive), // §10/§13.4: strip any unsigned unknown field
+      commit: () => {
+        this.seenDirectives.add(id);
+        this.inFlightDirectives.delete(id);
+      },
+      release: () => this.inFlightDirectives.delete(id),
+    };
   }
 }
